@@ -1,0 +1,238 @@
+{
+  "prompt": {
+    "1": {
+      "class_type": "UnetLoaderGGUFAdvanced",
+      "inputs": {
+        "unet_name": "",
+        "dequant_dtype": "float16",
+        "patch_dtype": "float16",
+        "patch_on_device": false
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoaderGGUF",
+      "inputs": {
+        "clip_name": "",
+        "type": "qwen_image"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": ""
+      }
+    },
+    "4": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": ""
+      }
+    },
+    "10": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": ""
+      }
+    },
+    "5": {
+      "class_type": "TextEncodeQwenImageEditPlus",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "image1": [
+          "4",
+          0
+        ],
+        "image2": [
+          "10",
+          0
+        ],
+        "prompt": ""
+      }
+    },
+    "6": {
+      "class_type": "TextEncodeQwenImageEditPlus",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "image1": [
+          "4",
+          0
+        ],
+        "image2": [
+          "10",
+          0
+        ],
+        "prompt": ""
+      }
+    },
+    "7": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "4",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "11": {
+      "class_type": "ModelSamplingAuraFlow",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "shift": 3.1
+      }
+    },
+    "13": {
+      "class_type": "FluxKontextMultiReferenceLatentMethod",
+      "inputs": {
+        "conditioning": [
+          "5",
+          0
+        ],
+        "reference_latents_method": "index_timestep_zero"
+      }
+    },
+    "14": {
+      "class_type": "FluxKontextMultiReferenceLatentMethod",
+      "inputs": {
+        "conditioning": [
+          "6",
+          0
+        ],
+        "reference_latents_method": "index_timestep_zero"
+      }
+    },
+    "12": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "11",
+          0
+        ],
+        "positive": [
+          "13",
+          0
+        ],
+        "negative": [
+          "14",
+          0
+        ],
+        "latent_image": [
+          "7",
+          0
+        ],
+        "seed": 42,
+        "steps": 28,
+        "cfg": 3.0,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1.0
+      }
+    },
+    "8": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "12",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "9": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "8",
+          0
+        ],
+        "filename_prefix": "l2d-edit"
+      }
+    }
+  },
+  "bindings": {
+    "unet": [
+      [
+        "1",
+        "unet_name"
+      ]
+    ],
+    "clip": [
+      [
+        "2",
+        "clip_name"
+      ]
+    ],
+    "vae": [
+      [
+        "3",
+        "vae_name"
+      ]
+    ],
+    "image": [
+      [
+        "4",
+        "image"
+      ]
+    ],
+    "reference": [
+      [
+        "10",
+        "image"
+      ]
+    ],
+    "prompt": [
+      [
+        "5",
+        "prompt"
+      ]
+    ],
+    "negative": [
+      [
+        "6",
+        "prompt"
+      ]
+    ],
+    "seed": [
+      [
+        "12",
+        "seed"
+      ]
+    ],
+    "steps": [
+      [
+        "12",
+        "steps"
+      ]
+    ],
+    "prefix": [
+      [
+        "9",
+        "filename_prefix"
+      ]
+    ]
+  },
+  "output_node": "9"
+}

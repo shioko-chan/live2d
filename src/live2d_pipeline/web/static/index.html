@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Live2D · 本地创作工作台</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script type="module" src="/static/app.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Live2D 工作台首页"
+        ><span class="brand-mark">L<span>2</span></span
+        ><span>Live2D<small>本地创作工作台</small></span></a
+      >
+      <button class="button primary new-project" id="new-project">
+        <span>＋</span> 新建角色
+      </button>
+      <div class="sidebar-caption">
+        我的项目 <span id="project-count">0</span>
+      </div>
+      <nav id="project-list" aria-label="项目列表"></nav>
+      <div class="sidebar-footer">
+        <span class="dot"></span>
+        <div>本地运行<small>素材与模型保存在这台电脑</small></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <span class="muted">工作台</span><span class="slash">/</span
+          ><span id="breadcrumb">选择项目</span>
+        </div>
+        <span id="connection" class="connection"><i></i> 已连接</span>
+      </header>
+      <div id="connection-error" class="banner error" hidden role="alert"></div>
+      <div id="notice" class="banner" hidden role="status"></div>
+      <section class="workspace-heading">
+        <div>
+          <div class="eyebrow">CHARACTER STUDIO</div>
+          <h1 id="project-title">从一个想法开始</h1>
+          <p id="project-subtitle">描述角色，检查立绘，再让它动起来。</p>
+        </div>
+        <span id="revision-badge" class="badge" hidden></span>
+      </section>
+      <ol class="pipeline" id="pipeline" aria-label="流水线进度"></ol>
+
+      <div class="workspace-grid">
+        <section class="preview-panel panel" aria-label="角色预览">
+          <div class="panel-toolbar">
+            <div class="tabs" role="tablist" aria-label="预览类型">
+              <button
+                class="tab active"
+                data-view="poses"
+                role="tab"
+                aria-selected="true"
+              >
+                动作预览</button
+              ><button
+                class="tab"
+                data-view="art"
+                role="tab"
+                aria-selected="false"
+              >
+                原画与素材</button
+              ><button
+                class="tab"
+                data-view="layers"
+                role="tab"
+                aria-selected="false"
+              >
+                独立图层
+              </button>
+            </div>
+            <a
+              id="open-preview"
+              class="text-link"
+              target="_blank"
+              rel="noopener"
+              hidden
+              >查看大图 ↗</a
+            >
+          </div>
+          <div class="preview-stage" id="preview-stage">
+            <div class="canvas-corner top-left"></div>
+            <div class="canvas-corner bottom-right"></div>
+            <img id="main-preview" alt="" hidden />
+            <div class="empty-preview" id="empty-preview">
+              <svg viewBox="0 0 80 80" fill="none" aria-hidden="true">
+                <rect x="14" y="10" width="52" height="60" rx="18" />
+                <path
+                  d="M26 43c5-16 23-16 28 0M26 51c7 9 21 9 28 0M30 25h20M40 20v10"
+                />
+              </svg>
+              <h2>你的角色，将在这里出现</h2>
+              <p>新建项目并描述外观，<br />或者上传已有立绘和分层 PSD。</p>
+            </div>
+            <span class="canvas-label" id="canvas-label" hidden></span>
+          </div>
+          <div class="thumbnails" id="thumbnails" aria-label="预览图片"></div>
+          <div class="preview-footer">
+            <span id="preview-count">等待创作</span
+            ><span>姿态样例 · 官方运行兼容性待验证</span>
+          </div>
+        </section>
+
+        <aside class="inspector panel">
+          <div class="inspector-tabs tabs" role="tablist" aria-label="项目操作">
+            <button
+              class="tab active"
+              data-panel="create"
+              role="tab"
+              aria-selected="true"
+            >
+              创作与修改</button
+            ><button
+              class="tab"
+              data-panel="history"
+              role="tab"
+              aria-selected="false"
+            >
+              版本记录 <span id="history-count">0</span>
+            </button>
+          </div>
+          <div id="create-panel" class="inspector-content">
+            <div class="section-label">
+              <span class="mini-mark">✦</span>
+              <h2 id="composer-title">描述你的角色</h2>
+            </div>
+            <p class="help" id="composer-help">
+              发色、服装、表情和画风，都可以用中文描述。
+            </p>
+            <form id="prompt-form">
+              <label class="sr-only" for="prompt">角色或修改需求</label>
+              <textarea
+                id="prompt"
+                maxlength="6000"
+                rows="6"
+                placeholder="例如：成年女性，银色长发、蓝眼，白色外套，正面半身，睁眼、闭嘴微笑。"
+              ></textarea>
+              <div class="prompt-meta">
+                <button type="button" id="example-prompt" class="text-link">
+                  填入示例</button
+                ><span id="prompt-count">0 / 6000</span>
+              </div>
+              <details class="uploads">
+                <summary>导入素材 <span>可选</span></summary>
+                <label class="upload-field"
+                  >立绘或分层 PSD<input
+                    id="source"
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.psd"
+                  /><span id="source-status">PNG / JPEG / PSD</span></label
+                ><label class="upload-field"
+                  >参考图<input
+                    id="reference"
+                    type="file"
+                    accept=".png,.jpg,.jpeg"
+                  /><span id="reference-status"
+                    >用于约束生成后的外观</span
+                  ></label
+                >
+                <p class="help">
+                  每个文件不超过 500 MB。上传后提交需求才会运行模型。
+                </p>
+              </details>
+              <label class="field-label" for="until">这次做到哪一步</label>
+              <select id="until">
+                <option value="image">生成立绘，先检查效果</option>
+                <option value="plan">只生成方案</option>
+                <option value="materials">拆分素材，暂不绑定</option>
+                <option value="rig">生成完整模型</option>
+              </select>
+              <button
+                id="submit-prompt"
+                type="submit"
+                class="button primary full"
+              >
+                开始创作 <span>↗</span>
+              </button>
+            </form>
+            <p id="composer-limit" class="help" hidden></p>
+            <div class="revision-actions" id="revision-actions" hidden>
+              <button id="resume" class="button secondary full">
+                继续生成完整模型 →
+              </button>
+              <div class="button-row">
+                <button id="accept" class="button secondary">接受版本</button
+                ><button id="export" class="button secondary">
+                  打包下载 ↓
+                </button>
+              </div>
+            </div>
+            <details id="plan-details" class="plan-details" hidden>
+              <summary>查看生成方案</summary>
+              <div id="plan-content"></div>
+            </details>
+            <div class="local-note">
+              <span>◉</span>
+              <p>
+                按需使用本地模型<br /><small>打开工作台不会占用模型显存</small>
+              </p>
+            </div>
+          </div>
+          <div id="history-panel" class="inspector-content" hidden>
+            <p class="help">
+              每次修改会保存为新版本。查看旧版本后，可将它设为后续修改的起点。
+            </p>
+            <div id="history-list"></div>
+            <button id="checkout" class="button secondary full" hidden>
+              从这个版本继续创作
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      <section
+        class="job-panel panel"
+        id="job-panel"
+        hidden
+        aria-label="任务进度"
+      >
+        <div class="job-heading">
+          <div class="job-icon" id="job-icon">◷</div>
+          <div class="job-description">
+            <h2 id="job-title">准备执行</h2>
+            <p id="job-subtitle"></p>
+          </div>
+          <a id="download" class="button primary" hidden>下载模型包 ↓</a
+          ><button id="cancel" class="button secondary" hidden>停止任务</button>
+        </div>
+        <p id="job-error" class="job-error" hidden></p>
+        <details id="logs-details">
+          <summary>运行日志</summary>
+          <div id="logs-content">
+            <p class="help">展开后显示当前任务日志。</p>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <dialog id="new-project-dialog">
+      <form id="new-project-form">
+        <div class="dialog-heading">
+          <div>
+            <div class="eyebrow">NEW CHARACTER</div>
+            <h2>创建一个新角色</h2>
+          </div>
+          <button
+            type="button"
+            id="close-dialog"
+            class="icon-button"
+            aria-label="关闭"
+          >
+            ×
+          </button>
+        </div>
+        <label class="field-label" for="project-name">项目名称</label
+        ><input
+          id="project-name"
+          name="name"
+          maxlength="64"
+          required
+          placeholder="例如：银发少女"
+          autocomplete="off"
+        />
+        <p class="help">
+          使用中英文字、数字、下划线或连字符。每个项目有独立的素材和版本记录。
+        </p>
+        <p id="create-error" class="job-error" hidden></p>
+        <button class="button primary full" type="submit">创建项目 →</button>
+      </form>
+    </dialog>
+  </body>
+</html>

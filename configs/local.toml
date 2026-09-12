@@ -1,0 +1,30 @@
+[planner]
+model = "models/planner/Qwen3-4B-Instruct-2507-Q4_K_M.gguf"
+executable = "llama-server"
+port = 28081
+context = 16384
+gpu_layers = 99
+[comfy]
+port = 18188
+checkpoint = "animagine-xl-4.0-opt.safetensors"
+unet = "qwen-image-edit-2511-Q4_K_M.gguf"
+clip = "Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf"
+vae = "qwen_image_vae.safetensors"
+[limits]
+timeout = 3600
+startup_timeout = 300
+steps = 28
+edit_steps = 28
+width = 832
+height = 1216
+seed = 42
+[paths]
+models = "models"
+runtime = ".runtime"
+[rig]
+atlas = 4096
+mesh_spacing = 48
+head_strength = 0.5
+body_strength = 0.5
+[execution]
+inference = "container"

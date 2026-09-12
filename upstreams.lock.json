@@ -1,0 +1,18 @@
+{
+  "psd2live": {
+    "url": "https://github.com/tsunehimatoi/psd2live.git",
+    "revision": "b7d88cde71c44bb758e7a3f582b6e43609956de8"
+  },
+  "comfy": {
+    "url": "https://github.com/Comfy-Org/ComfyUI.git",
+    "revision": "6f3895ed8d1e0f1d5fad11b48b3f159f7de1cc15"
+  },
+  "gguf": {
+    "url": "https://github.com/city96/ComfyUI-GGUF.git",
+    "revision": "6ea2651e7df66d7585f6ffee804b20e92fb38b8a"
+  },
+  "see-through": {
+    "url": "https://github.com/shitagaki-lab/see-through.git",
+    "revision": "7f139bb25c46a0c8ac720d95ddab185fcda5451c"
+  }
+}
