@@ -90,7 +90,7 @@ def test_versions_keep_original(tmp_path):
     assert rev3.parent == rev1.id
     assert len(store.history()) == 3
     with pytest.raises(ValueError):
-        store.checkout(rev2.id, accept=True)
+        store.accept(rev2.id)
     with pytest.raises(ValueError):
         store.revision_dir("../outside")
 

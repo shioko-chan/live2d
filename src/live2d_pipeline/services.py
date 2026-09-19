@@ -11,7 +11,7 @@ from .store import digest, read_json, write_json
 from .validation import validate_bundle
 
 
-def plan_revision(config, store, request, source=None, reference=None, plan_file=None):
+def plan_revision(config, store, request, source=None, reference=None, plan_file=None, reuse_inputs=True):
     state = read_json(store.root / "project.json")
     current = store.get() if state["head"] else None
     draft = current if current and current.status not in {"built", "accepted"} else None
@@ -19,10 +19,12 @@ def plan_revision(config, store, request, source=None, reference=None, plan_file
     base = store.get(parent) if parent else None
     if base and base.status not in {"built", "accepted"} and source is None:
         raise ValueError("请先选择一个已完成的基础版本，或导入新的源素材。")
-    if draft:
+    if draft and reuse_inputs:
         directory = store.revision_dir(draft.id)
         source = source or (directory / draft.source if draft.source else None)
         reference = reference or (directory / draft.reference if draft.reference else None)
+    if source is not None and reference is not None:
+        raise ValueError("原稿直接用于制作模型，不能同时使用参考图。请只保留一种图片。")
     if plan_file:
         result = Plan.model_validate_json(Path(plan_file).read_text())
         result.request = request
@@ -39,6 +41,8 @@ def plan_revision(config, store, request, source=None, reference=None, plan_file
             with tempfile.TemporaryDirectory(prefix="l2d-plan-") as tmp:
                 context["parts"] = normalize(source, Path(tmp)).model_dump()
         result = make_plan(config, request, context, store.root / "planner.log")
+    if reference is not None and base and not any(o.kind == "regenerate" for o in result.operations):
+        raise ValueError("参考图仅用于新角色生成或整图重新生成；普通局部修改不会使用参考图。")
     return store.create(result, source=source, reference=reference, parent=parent)
 
 
@@ -61,6 +65,24 @@ def export_revision(store, destination, revision=None):
     shutil.copytree(directory / "materials", destination / "sources/layers")
     for filename in ("source.psd", "source.psd2live"):
         shutil.copyfile(directory / "rig" / filename, destination / "sources" / filename)
+    for filename in ("components.json", "pose-samples.json"):
+        if (directory / "rig" / filename).is_file():
+            shutil.copyfile(directory / "rig" / filename, destination / "sources" / filename)
+    if (directory / "repair-evidence").exists():
+        shutil.copytree(directory / "repair-evidence", destination / "repair")
+        shutil.copyfile(directory / "repair.json", destination / "repair/draft.json")
+    if (directory / "rig-replay.json").exists():
+        shutil.copyfile(directory / "rig-replay.json", destination / "sources/rig-replay.json")
+    latest = store.root / "reviews" / rev.id / "latest.json"
+    if latest.is_file():
+        review = read_json(latest)
+        evidence = (store.root / review["report_directory"]).resolve()
+        if not evidence.is_relative_to((store.root / "reviews" / rev.id).resolve()):
+            raise ValueError("Review evidence directory is outside the revision")
+        (destination / "review").mkdir()
+        shutil.copyfile(latest, destination / "review/report.json")
+        for image in evidence.glob("sheet-*.png"):
+            shutil.copyfile(image, destination / "review" / image.name)
     shutil.copyfile(directory / "revision.json", destination / "revision.json")
     write_json(destination / "validation.json", report)
     return destination

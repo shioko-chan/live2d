@@ -183,6 +183,14 @@ async def build(config, psd, output, operations, parent_workspace=None):
 
             authored = {coordinate_key(op) for op in operations if op.tool == "keyform_set"}
             await rig.apply([op for op in defaults if coordinate_key(op) not in authored])
+        if parent_workspace is None:
+            from .assets import load_parts
+            from .refinement import bind
+
+            manifest = load_parts(output.parent / "materials")
+            write_json(output / "components.json", await bind(rig, manifest))
+        elif (parent_workspace.parent / "components.json").exists():
+            shutil.copyfile(parent_workspace.parent / "components.json", output / "components.json")
         await rig.apply(operations)
         write_json(output / "rig-context.json", await rig.context())
         # Render finite parameter samples on the upstream CPU renderer.
@@ -190,19 +198,7 @@ async def build(config, psd, output, operations, parent_workspace=None):
         params = {p["id"]: p for p in state.get("parameters", [])}
         from base64 import b64decode
 
-        samples = [
-            {},
-            *[
-                {k: p["min"]}
-                for k, p in params.items()
-                if k in {"ParamAngleX", "ParamEyeLOpen", "ParamMouthOpenY"}
-            ],
-            *[
-                {k: p["max"]}
-                for k, p in params.items()
-                if k in {"ParamAngleX", "ParamEyeLOpen", "ParamMouthOpenY"}
-            ],
-        ]
+        samples = pose_samples(params)
         # Use exact live schema; request construction is checked before calling.
         snapshot = await rig.call("project_get_state")
         if "ParamAngleX" in params and "ParamEyeLOpen" in params:
@@ -245,3 +241,22 @@ async def build(config, psd, output, operations, parent_workspace=None):
         if not result.get("ok"):
             raise RuntimeError(result.get("error", "Export failed"))
         return bundle
+
+
+def pose_samples(params):
+    samples = [{}]
+    for key, parameter in params.items():
+        if key == "ParamBreath":
+            continue
+        for value in (parameter["min"], parameter["max"]):
+            if value != parameter["default"]:
+                samples.append({key: value})
+                if key.startswith("ParamComponent_"):
+                    samples.append({key: (value + parameter["default"]) / 2})
+    for angle in ("ParamAngleX", "ParamAngleY"):
+        if angle in params and "ParamEyeBallX" in params:
+            for direction in (-1, 1):
+                samples.append(
+                    {angle: params[angle]["min" if direction < 0 else "max"], "ParamEyeBallX": direction}
+                )
+    return samples

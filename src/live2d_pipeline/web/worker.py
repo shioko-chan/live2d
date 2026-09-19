@@ -36,7 +36,39 @@ def execute(config, projects, directory):
             if state["head"] != spec.expected_head:
                 raise ValueError("项目版本已经改变，请刷新后重新提交。")
             update(status="running", started=time.time(), phase="准备任务")
-            if spec.action == "plan":
+            if spec.action == "repair":
+                from .. import repair
+
+                update(
+                    draft=spec.draft,
+                    phase={
+                        "segment": "生成分割候选",
+                        "preview": "生成修正预览",
+                        "inspect": "核对部件完整性",
+                        "suggest": "定位问题并提出修正",
+                        "apply": "应用修正并构建",
+                        "rig_context": "读取姿态与绑定对象",
+                        "binding_preview": "预览绑定与相关姿态",
+                        "underpaint": "重做遮挡补全",
+                        "search": "生成并比较有限修正候选",
+                    }[spec.repair_step],
+                )
+                args = (config, store, spec.draft, spec.draft_version)
+                if spec.repair_step == "apply":
+                    rev = repair.apply(*args, until=spec.until)
+                    update(revision=rev.id)
+                    if rev.status != "built" and spec.until == "rig":
+                        update(status="needs_input", error="素材仍有缺失，请在修正工作区补齐后继续绑定")
+                elif spec.repair_step == "preview":
+                    repair.preview_materials(*args, retry=spec.retry)
+                elif spec.repair_step in {"rig_context", "suggest"}:
+                    from .. import repair_rig
+
+                    getattr(repair_rig, spec.repair_step)(*args)
+                else:
+                    getattr(repair, spec.repair_step)(*args)
+                update(phase="修正结果已保存，请查看工作区")
+            elif spec.action == "plan":
                 if not spec.request.strip():
                     raise ValueError("请先描述角色或修改需求。")
                 uploads = config.runtime / "web/uploads"
@@ -45,6 +77,7 @@ def execute(config, projects, directory):
                     config,
                     store,
                     spec.request,
+                    reuse_inputs=spec.reuse_inputs,
                     source=uploads / spec.source if spec.source else None,
                     reference=uploads / spec.reference if spec.reference else None,
                 )
@@ -61,12 +94,36 @@ def execute(config, projects, directory):
                     raise ValueError("继续生成时请选择立绘、素材或完整模型。")
                 rev = store.get(spec.revision)
                 update(revision=rev.id, phase="执行流水线")
+                from .presentation import resume_targets
+
+                if spec.until not in resume_targets(rev):
+                    raise ValueError("所选阶段已完成或不适用于该方案，请刷新后重新选择。")
                 Pipeline(config, store).run(rev, until=spec.until)
+            elif spec.action in {"refine", "review"}:
+                from ..review import refine, inspect
+
+                update(phase="细化部件并复查" if spec.action == "refine" else "规则与视觉检查")
+                if spec.action == "refine":
+                    report = refine(config, store, spec.request or "完善头发、服装和饰品", spec.revision)
+                    update(revision=report["revision"], drafts=report["drafts"])
+                else:
+                    report = inspect(config, store, spec.request or "检查细节和动作", spec.revision)
+                    update(revision=report["revision"])
+                update(review=report, phase="检查完成，等待用户验收")
             elif spec.action in {"checkout", "accept"}:
                 if not spec.revision:
                     raise ValueError("请选择版本。")
-                store.checkout(spec.revision, accept=spec.action == "accept")
+                if spec.action == "accept":
+                    store.accept(spec.revision)
+                else:
+                    store.checkout(spec.revision)
                 update(revision=spec.revision, phase="版本已更新")
+            elif spec.action == "video":
+                from ..video import generate
+
+                rev = store.get(spec.revision)
+                update(revision=rev.id)
+                generate(config, store, rev.id, progress=lambda message: update(phase=message))
             elif spec.action == "export":
                 rev = store.get(spec.revision)
                 update(revision=rev.id, phase="校验并打包")
@@ -78,6 +135,10 @@ def execute(config, projects, directory):
                     shutil.copyfile(image, dest)
                 shutil.make_archive(str(directory / "model"), "zip", target)
                 update(download=f"/api/jobs/{job['id']}/download", phase="模型包已就绪")
+            if spec.action in {"run", "plan"} and spec.until == "rig" and job.get("revision"):
+                current = store.get(job["revision"])
+                if current.status == "paused":
+                    update(status="needs_input", error="素材尚未齐全，可在部件修正工作区补齐后继续")
             if job["status"] != "needs_input":
                 update(status="succeeded", phase="已完成")
     except BaseException as exc:

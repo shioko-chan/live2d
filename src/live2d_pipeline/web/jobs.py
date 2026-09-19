@@ -10,7 +10,7 @@ import time
 from typing import Literal
 import uuid
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from ..schema import Strict
 from ..store import read_json, write_json
@@ -19,13 +19,41 @@ ACTIVE = {"queued", "running", "cancelling"}
 
 
 class JobRequest(Strict):
-    action: Literal["plan", "run", "export", "checkout", "accept"]
+    action: Literal["plan", "run", "export", "checkout", "accept", "refine", "review", "video", "repair"]
     expected_head: str | None
     revision: str | None = Field(default=None, pattern=r"^[a-zA-Z0-9]+$")
     request: str = Field(default="", max_length=6000)
+    reuse_inputs: bool = True
     until: Literal["plan", "image", "materials", "rig"] = "rig"
     source: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}\.(png|jpg|jpeg|psd)$")
     reference: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}\.(png|jpg|jpeg)$")
+    draft: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}$")
+    draft_version: int | None = Field(default=None, ge=1)
+    repair_step: (
+        Literal[
+            "segment",
+            "preview",
+            "underpaint",
+            "binding_preview",
+            "inspect",
+            "suggest",
+            "apply",
+            "rig_context",
+            "search",
+        ]
+        | None
+    ) = None
+    retry: bool = False
+
+    @model_validator(mode="after")
+    def inputs_match_action(self):
+        if self.action == "repair" and (not self.draft or not self.draft_version or not self.repair_step):
+            raise ValueError("修正任务需要草稿版本和操作")
+        if self.source and self.reference:
+            raise ValueError("原稿和参考图不能同时使用。")
+        if self.action != "plan" and (self.source or self.reference):
+            raise ValueError("导入图片仅用于生成新方案。")
+        return self
 
 
 class Jobs:

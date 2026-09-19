@@ -51,6 +51,23 @@ fun main(args: Array<String>) = runBlocking {
         Files.writeString(control.resolve("ready.tmp"), payload.toString())
         Files.move(control.resolve("ready.tmp"), control.resolve("ready.json"))
         while (true) {
+            val mapRequest = control.resolve("map.request.json")
+            if (Files.exists(mapRequest)) {
+                val data = Json.parseToJsonElement(Files.readString(mapRequest)).jsonObject
+                Files.delete(mapRequest)
+                val response = try {
+                    buildJsonObject {
+                        put("ok", true)
+                        put("result", mapCanvasRepair(requireNotNull(vm.state.value.previewModel).rig.puppet, data))
+                    }
+                } catch (e: Exception) {
+                    buildJsonObject { put("ok", false); put("error", e.message ?: "Mapping failed") }
+                }
+                Files.writeString(control.resolve("map.done.tmp"), response.toString())
+                Files.move(control.resolve("map.done.tmp"), control.resolve("map.done.json"),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                    java.nio.file.StandardCopyOption.ATOMIC_MOVE)
+            }
             val request = control.resolve("export.request.json")
             if (Files.exists(request)) {
                 val data = Json.parseToJsonElement(Files.readString(request)).jsonObject

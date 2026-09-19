@@ -41,6 +41,8 @@ def prepare_sources(config):
         config.root / "integrations/psd2live/PipelineServer.kt",
         rig / "src/main/kotlin/io/github/psd2live/PipelineServer.kt",
     )
+    shutil.copyfile(config.root / "integrations/psd2live/CanvasRepair.kt",
+                    rig / "src/main/kotlin/io/github/psd2live/CanvasRepair.kt")
     build = rig / "build.gradle.kts"
     baseline = subprocess.check_output(["git", "-C", str(rig), "show", "HEAD:build.gradle.kts"], text=True)
     build.write_text(

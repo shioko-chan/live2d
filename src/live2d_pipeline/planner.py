@@ -46,6 +46,9 @@ regenerate 只用于明确的整图重生成或无法局部实现的轮廓改变
 
 def generation_schema(context=None):
     schema = Plan.model_json_schema()
+    schema["properties"]["refinements"] = {"type": "array", "maxItems": 0, "items": {"type": "object"}}
+    schema["$defs"].pop("Refinement", None)
+    schema["$defs"].pop("Binding", None)
     properties = schema["$defs"]["Operation"]["properties"]
     fields = {
         "recolor": ["target", "color"],

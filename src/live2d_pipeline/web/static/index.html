@@ -8,6 +8,7 @@
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/static/style.css" />
     <script type="module" src="/static/app.js"></script>
+    <script type="module" src="/static/repair.js"></script>
   </head>
   <body>
     <aside class="sidebar">
@@ -46,6 +47,8 @@
         </div>
         <span id="revision-badge" class="badge" hidden></span>
       </section>
+      <p id="version-status" class="help" aria-live="polite"></p>
+      <div id="global-task" class="banner" hidden><span id="global-task-text"></span><button id="stop-active-task" class="text-link">停止此任务</button></div>
       <ol class="pipeline" id="pipeline" aria-label="流水线进度"></ol>
 
       <div class="workspace-grid">
@@ -58,13 +61,15 @@
                 role="tab"
                 aria-selected="true"
               >
-                动作预览</button
+                姿态预览</button
               ><button
                 class="tab"
-                data-view="art"
+                data-view="video"
                 role="tab"
                 aria-selected="false"
               >
+                动作视频</button
+              ><button class="tab" data-view="art" role="tab" aria-selected="false">
                 原画与素材</button
               ><button
                 class="tab"
@@ -100,8 +105,16 @@
             </div>
             <span class="canvas-label" id="canvas-label" hidden></span>
           </div>
+          <div class="video-panel" id="video-panel" hidden>
+            <button id="generate-video" class="button secondary" disabled>生成预览视频</button>
+            <a id="download-video" class="text-link" hidden>下载 MP4</a>
+            <p id="video-help" class="help">模型构建完成后可生成视频。</p>
+            <p class="help">8 秒 · 24 帧/秒 · 转头、眨眼、张嘴及部件参数动画，未模拟物理摆动。</p>
+            <video id="motion-video" controls loop playsinline preload="metadata" hidden aria-label="模型动作预览视频"></video>
+          </div>
           <div class="thumbnails" id="thumbnails" aria-label="预览图片"></div>
-          <div class="preview-footer">
+          <div class="preview-footer" id="preview-footer">
+            <button id="edit-preview" class="text-link" hidden>修正此图层</button>
             <span id="preview-count">等待创作</span
             ><span>姿态样例 · 官方运行兼容性待验证</span>
           </div>
@@ -134,6 +147,13 @@
               发色、服装、表情和画风，都可以用中文描述。
             </p>
             <form id="prompt-form">
+              <label class="field-label" for="operation-mode">本次操作</label>
+              <select id="operation-mode">
+                <option value="plan">生成或修改外观</option>
+                <option value="refine">细化部件与动作</option>
+                <option value="review">只检查，不修改</option>
+              </select>
+              <p id="operation-help" class="help"></p>
               <label class="sr-only" for="prompt">角色或修改需求</label>
               <textarea
                 id="prompt"
@@ -146,34 +166,40 @@
                   填入示例</button
                 ><span id="prompt-count">0 / 6000</span>
               </div>
-              <details class="uploads">
+              <div id="plan-options">
+              <label id="reuse-inputs-field" class="help" hidden><input id="reuse-inputs" type="checkbox" checked /> 沿用当前方案的图片输入 <span id="saved-inputs"></span></label>
+              <details class="uploads" id="uploads">
                 <summary>导入素材 <span>可选</span></summary>
                 <label class="upload-field"
-                  >立绘或分层 PSD<input
+                  >制作原稿（直接用于拆层）<input
                     id="source"
                     type="file"
                     accept=".png,.jpg,.jpeg,.psd"
-                  /><span id="source-status">PNG / JPEG / PSD</span></label
-                ><label class="upload-field"
-                  >参考图<input
+                  /><span id="source-status">PNG / JPEG / PSD</span></label><button id="clear-source" type="button" class="text-link" hidden>移除原稿</button>
+                <label class="upload-field"
+                  >角色参考图（用于生图）<input
                     id="reference"
                     type="file"
                     accept=".png,.jpg,.jpeg"
                   /><span id="reference-status"
-                    >用于约束生成后的外观</span
+                    >仅新角色生成使用，保留参考角色特征</span
                   ></label
                 >
                 <p class="help">
-                  每个文件不超过 500 MB。上传后提交需求才会运行模型。
+                  原稿建议为单人正面、简单背景；不会自动选人或裁出角色。原稿和参考图二选一，每个文件不超过 500 MB。
                 </p>
               </details>
-              <label class="field-label" for="until">这次做到哪一步</label>
+              <p id="reference-help" class="help"></p>
+              <button id="clear-reference" type="button" class="text-link" hidden>移除参考图</button>
+              <label class="field-label" for="until">新方案执行到</label>
               <select id="until">
-                <option value="image">生成立绘，先检查效果</option>
-                <option value="plan">只生成方案</option>
-                <option value="materials">拆分素材，暂不绑定</option>
-                <option value="rig">生成完整模型</option>
+                <option value="image">立绘就绪后暂停</option>
+                <option value="plan">只整理需求方案，不生成图片</option>
+                <option value="materials">图层素材就绪后暂停</option>
+                <option value="rig">完成模型构建（验收另行进行）</option>
               </select>
+              <p id="plan-stage-help" class="help"></p>
+              </div>
               <button
                 id="submit-prompt"
                 type="submit"
@@ -184,16 +210,28 @@
             </form>
             <p id="composer-limit" class="help" hidden></p>
             <div class="revision-actions" id="revision-actions" hidden>
-              <button id="resume" class="button secondary full">
-                继续生成完整模型 →
-              </button>
+              <div id="resume-panel">
+                <h2>执行已有方案</h2>
+                <p class="help">沿用这份方案，不使用上方尚未提交的文字或图片。</p>
+                <label class="field-label" for="resume-until">继续执行到</label>
+                <select id="resume-until"></select>
+                <button id="resume" class="button secondary full">执行已有方案 →</button>
+                <p id="resume-help" class="help"></p>
+              </div>
               <div class="button-row">
-                <button id="accept" class="button secondary">接受版本</button
+                <button id="accept" class="button secondary">标记人工验收通过</button
                 ><button id="export" class="button secondary">
                   打包下载 ↓
                 </button>
               </div>
+              <p id="accept-help" class="help">仅记录人工验收，不切换创作起点，也不代表官方兼容性验证。</p>
+              <a id="download" class="text-link" hidden>下载此版本模型包</a>
             </div>
+            <section id="quality-panel" hidden>
+              <h2>本版本检查结果</h2>
+              <p class="help">视觉意见需要人工核对。点击问题的姿态名称可查看对应图片。</p>
+              <div id="review-content" class="help"></div>
+            </section>
             <details id="plan-details" class="plan-details" hidden>
               <summary>查看生成方案</summary>
               <div id="plan-content"></div>
@@ -211,11 +249,13 @@
             </p>
             <div id="history-list"></div>
             <button id="checkout" class="button secondary full" hidden>
-              从这个版本继续创作
+              设为创作起点
             </button>
           </div>
         </aside>
       </div>
+
+      <section class="panel repair-workspace" id="repair-workspace" hidden aria-label="部件修正工作区"></section>
 
       <section
         class="job-panel panel"
@@ -229,8 +269,7 @@
             <h2 id="job-title">准备执行</h2>
             <p id="job-subtitle"></p>
           </div>
-          <a id="download" class="button primary" hidden>下载模型包 ↓</a
-          ><button id="cancel" class="button secondary" hidden>停止任务</button>
+          <button id="cancel" class="button secondary" hidden>停止任务</button>
         </div>
         <p id="job-error" class="job-error" hidden></p>
         <details id="logs-details">

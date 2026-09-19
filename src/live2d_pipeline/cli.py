@@ -1,5 +1,6 @@
 import json
 from enum import Enum
+from typing import Annotated
 from pathlib import Path
 import typer
 from .config import Config
@@ -9,7 +10,10 @@ from .store import Store, lock, read_json
 from .validation import validate_bundle
 from . import setup
 
-app = typer.Typer(no_args_is_help=True, help="Local AIGC → Live2D. Only plan/run/revise call models.")
+app = typer.Typer(
+    no_args_is_help=True,
+    help="Local AIGC → Live2D. Models start only for explicit generation, refinement or review.",
+)
 
 
 def show(value):
@@ -75,6 +79,37 @@ def revise(
 
 
 @app.command()
+def review(
+    project: Path,
+    request: Annotated[str, typer.Argument()] = "检查模型的细节和动作",
+    revision: str | None = None,
+    config: Path | None = None,
+):
+    """Run deterministic checks and local VLM review. Acceptance remains manual."""
+    from .review import inspect
+
+    c, store = cfg(config), Store(project)
+    with lock(c.runtime / "task.lock"), lock(store.root / ".lock"):
+        show(inspect(c, store, request, revision))
+
+
+@app.command()
+def refine(
+    project: Path,
+    request: Annotated[str, typer.Argument()] = "完善头发、服装和饰品的独立部件与小幅摆动",
+    revision: str | None = None,
+    config: Path | None = None,
+):
+    """Refine a completed model, review, repair at most once, then await the user."""
+    from .review import refine as refine_model
+
+    c, store = cfg(config), Store(project)
+    with lock(c.runtime / "task.lock"), lock(store.root / ".lock"):
+        report = refine_model(c, store, request, revision)
+        show({"review": report, "accepted": False})
+
+
+@app.command()
 def resume(project: Path, revision: str | None = None, config: Path | None = None):
     """Explicit execution: reuse verified completed stages and retry unfinished stages."""
     run(project, revision, config)
@@ -100,11 +135,19 @@ def history(project: Path):
 
 
 @app.command()
-def checkout(project: Path, revision: str, accept: bool = False):
-    """Select a branch; --accept marks the inspected result as accepted."""
+def checkout(project: Path, revision: str):
+    """Select the starting point for subsequent work."""
     store = Store(project)
     with lock(store.root / ".lock"):
-        store.checkout(revision, accept)
+        store.checkout(revision)
+
+
+@app.command()
+def accept(project: Path, revision: str):
+    """Mark a built revision as manually accepted without switching the working head."""
+    store = Store(project)
+    with lock(store.root / ".lock"):
+        store.accept(revision)
 
 
 @app.command()

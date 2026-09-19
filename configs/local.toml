@@ -28,3 +28,10 @@ head_strength = 0.5
 body_strength = 0.5
 [execution]
 inference = "container"
+[vision]
+model = "models/vision/Qwen3.5-9B-Q4_K_M.gguf"
+projector = "models/vision/mmproj-F16.gguf"
+executable = "llama-server"
+port = 28082
+context = 16384
+gpu_layers = 99

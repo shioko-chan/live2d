@@ -1,7 +1,7 @@
 import asyncio
 import shutil
 from PIL import Image
-from . import assets, comfy, decompose, rig, segment
+from . import assets, comfy, decompose, rig, segment, refinement
 from .planner import make_plan
 from .schema import Part, Stage
 from .store import digest, fingerprint, read_json, write_json
@@ -29,7 +29,8 @@ class Pipeline:
             str(p.relative_to(root)): digest(p)
             for base in ("src", "workflows", "integrations", "scripts", "containers")
             for p in (root / base).rglob("*")
-            if p.is_file() and p.suffix in {".py", ".json", ".kt", ".kts", ".txt", ".Dockerfile"}
+            if p.is_file()
+            and p.suffix in {".py", ".json", ".kt", ".kts", ".txt", ".Dockerfile"}
             and not p.is_relative_to(root / "src/live2d_pipeline/web")
         }
         key = fingerprint(
@@ -97,14 +98,26 @@ class Pipeline:
         operations = revision.plan.operations
         regenerate = any(o.kind == "regenerate" for o in operations)
         inherit = parent is not None and revision.source is None and not regenerate
+        if revision.reference and (revision.source or inherit):
+            raise ValueError("此方案的参考图不会被使用，请移除冲突输入后重新规划。")
+        if revision.plan.refinements and not inherit:
+            raise ValueError("Refinements require an existing completed model")
         if inherit and until == "image":
             raise ValueError("Art edits run to materials; inherited revisions have no image stage")
-        if inherit and parent.status not in {"built", "accepted"}:
+        if inherit and parent.status not in {"built", "accepted"} and not revision.prepared_materials:
             raise ValueError("Build the parent revision first")
         revision.status = "running"
         self.store.save(revision)
         try:
-            if inherit:
+            if revision.prepared_materials:
+                from .repair import copy_materials, material_files
+
+                prepared = directory / revision.prepared_materials
+                art_key = material_files(prepared)
+
+                def produce(target):
+                    copy_materials(prepared, target)
+            elif inherit:
                 parent_dir = self.store.revision_dir(parent.id)
                 parent_parts = parent_dir / "materials"
                 art_key = {
@@ -116,6 +129,7 @@ class Pipeline:
                 def produce(target):
                     shutil.copytree(parent_parts, target, dirs_exist_ok=True)
                     self.modify(target, operations)
+                    refinement.apply(self.config, target, revision.plan.refinements)
             else:
                 source = directory / revision.source if revision.source else None
                 reference = directory / revision.reference if revision.reference else None
@@ -203,18 +217,30 @@ class Pipeline:
             materials = self.stage(
                 revision,
                 "materials",
-                {"art": art_key, "operations": [o.model_dump() for o in operations if o.kind != "rig"]},
+                {
+                    "art": art_key,
+                    "operations": [o.model_dump() for o in operations if o.kind != "rig"],
+                    "refinements": [e.model_dump() for e in revision.plan.refinements],
+                },
                 produce,
             )
             report = assets.quality(materials)
             if report["missing_parts"] or report["errors"]:
-                raise RuntimeError(f"Materials require correction: {report}")
+                write_json(materials / "quality.json", report)
+                revision.stages["materials"].artifacts = {
+                    str(p.relative_to(directory)): digest(p) for p in materials.rglob("*") if p.is_file()
+                }
+                revision.status = "paused"
+                self.store.save(revision)
+                return directory
             if until == "materials":
                 revision.status = "paused"
                 self.store.save(revision)
                 return directory
             # Reuse editable workspace only when source art is unchanged. Structural edits rebuild and replay.
-            changed_art = not inherit or any(o.kind != "rig" for o in operations)
+            changed_art = (
+                not inherit or bool(revision.prepared_materials) or bool(revision.plan.refinements) or any(o.kind != "rig" for o in operations)
+            )
             rig_ops = [o for o in operations if o.kind == "rig"]
             parent_workspace = None
             if inherit:
@@ -229,6 +255,11 @@ class Pipeline:
                     rig_ops = [
                         o for rev in reversed(chain) for o in rev.plan.operations if o.kind == "rig"
                     ] + rig_ops
+                    if revision.prepared_materials:
+                        from .repair_rig import safe_replay
+
+                        rig_ops, stale = safe_replay(self.store, parent, materials, rig_ops)
+                        write_json(directory / "rig-replay.json", {"needs_review": stale})
                 else:
                     parent_workspace = self.store.revision_dir(parent.id) / "rig/source.psd2live"
 

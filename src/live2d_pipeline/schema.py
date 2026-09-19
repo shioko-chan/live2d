@@ -6,6 +6,53 @@ class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
+class Binding(Strict):
+    # The upstream semantic rig supplies the head/body parent. Independent motion
+    # is authored in that frame; changing coordinate parents is not implied.
+    motion: Literal["fixed", "sway"] = "fixed"
+    root: tuple[float, float] = (0.5, 0.0)
+    tip: tuple[float, float] = (0.5, 1.0)
+    degrees: float = Field(default=4, gt=0, le=12)
+    root_pin: float = Field(default=0.3, ge=0, le=0.95)
+    softness: float = Field(default=1.5, ge=0, le=8)
+    toggle: bool = False
+
+    @model_validator(mode="after")
+    def geometry(self):
+        if any(v < 0 or v > 1 for v in (*self.root, *self.tip)):
+            raise ValueError("Root/tip must be normalized part coordinates")
+        if self.motion == "sway" and sum((a - b) ** 2 for a, b in zip(self.root, self.tip)) < 0.01:
+            raise ValueError("Sway root and tip must be distinct")
+        return self
+
+
+class Refinement(Strict):
+    action: Literal["split", "bind"]
+    source: str = Field(min_length=1)
+    name: str = Field(min_length=1, max_length=80)
+    # Split selection is in source-layer pixels, not a resized contact sheet.
+    box: tuple[int, int, int, int] | None = None
+    point: tuple[int, int] | None = None
+    binding: Binding
+    reason: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def selection(self):
+        if self.action == "split":
+            if self.box is None or self.point is None:
+                raise ValueError("Split requires a box and foreground point")
+            x, y, w, h = self.box
+            if (
+                min(x, y) < 0
+                or min(w, h) < 4
+                or not (x <= self.point[0] < x + w and y <= self.point[1] < y + h)
+            ):
+                raise ValueError("Invalid split selection")
+        elif self.box is not None or self.point is not None:
+            raise ValueError("Binding does not use a selection")
+        return self
+
+
 class Operation(Strict):
     kind: Literal["recolor", "repaint", "add", "remove", "rig", "regenerate"]
     target: str | None = None
@@ -40,11 +87,14 @@ class Plan(Strict):
     prompt: str
     negative: str = "lowres, bad anatomy, cropped, text, watermark, blurry, background scenery"
     operations: list[Operation] = Field(default_factory=list, max_length=16)
+    refinements: list[Refinement] = Field(default_factory=list, max_length=4)
     clarification: str | None = None
     unsupported: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def regeneration(self):
+        if self.refinements and self.operations:
+            raise ValueError("Refinement and ordinary edits require separate revisions")
         if any(o.kind == "regenerate" for o in self.operations) and len(self.operations) != 1:
             raise ValueError("regenerate must be its own revision")
         return self
@@ -58,6 +108,8 @@ class Part(Strict):
     order: int
     bounds: tuple[int, int, int, int]
     image: str
+    derived_from: str | None = None
+    binding: Binding | None = None
 
 
 class Parts(Strict):
@@ -81,6 +133,8 @@ class Revision(Strict):
     source: str | None = None
     source_hash: str | None = None
     reference: str | None = None
+    # A validated, immutable material snapshot produced by the repair workspace.
+    prepared_materials: Literal["prepared-materials"] | None = None
     stages: dict[str, Stage] = Field(default_factory=dict)
     status: Literal["planned", "running", "paused", "failed", "built", "accepted"] = "planned"
     # Runtime verification and visual acceptance remain separate from build completion.

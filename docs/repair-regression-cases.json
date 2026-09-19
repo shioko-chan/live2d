@@ -1,0 +1,69 @@
+{
+  "description": "本机已保存的真实输入，不包含权重或产物。默认仅核对输入；--execute 在新草稿中串行执行，不应用正式版本。operation 表示操作回归，不能据此宣称修复了经确认的缺陷。",
+  "cases": [
+    {
+      "name": "领结底层残影",
+      "project": "repair-validation-20260918",
+      "draft": "8bb780953a8f4cfea1370b84030435f2",
+      "step": "search",
+      "fixture": "defect",
+      "note": "已有实际残留轮廓和待确认VLM证据，比较新的底层清理候选；不保证自动修复成功。"
+    },
+    {
+      "name": "两只耳饰拆分",
+      "project": "repair-materials-20260918",
+      "draft": "3ddea3de450144dcac01e33f837a1e74",
+      "step": "preview",
+      "fixture": "operation",
+      "note": "从已保存的网页笔刷标注重放拆分，检查默认姿态合成不变；不模拟用户鼠标动作。"
+    },
+    {
+      "name": "缺失开口口型补充",
+      "project": "repair-materials-20260918",
+      "draft": "dea55bd94494462e9c1f5e9c1a52217d",
+      "step": "preview",
+      "fixture": "defect",
+      "note": "基础版本缺少开口素材，重用保存的外部PNG及位置补充；本案例不声称自动生出口型。"
+    },
+    {
+      "name": "闭眼虹膜显隐操作",
+      "project": "repair-validation-20260918",
+      "draft": "f4ea23379a7244d7b614ab3f5ce2c53e",
+      "step": "inspect",
+      "fixture": "operation",
+      "note": "重放闭眼透明度操作并检查相邻姿态；尚未建立经确认的明显闭眼残留缺陷基线。"
+    },
+    {
+      "name": "耳饰连接点固定与2像素拖动",
+      "project": "repair-validation-20260918",
+      "draft": "cc3bbdd5c5c0434ca0d9f451b585ea6d",
+      "step": "search",
+      "fixture": "operation",
+      "note": "固定根部、末端右移2像素的操作回归；旧记录仅证实无新增几何错误，本版另检查移动点实际到达误差。不是严重连接点漂移修复案例。"
+    },
+    {
+      "name": "已知4像素连接点漂移修复",
+      "project": "repair-defects-20260919-fixed",
+      "draft": "6ae25f2cdf694acf9600b8b9b1512f8a",
+      "step": "preview",
+      "fixture": "defect",
+      "note": "独立工程人工注入4像素根部漂移，有健康/坏/修复的真实画布控制点真值；首次实测4.009163像素偏移修复到0.017641像素。证据.runtime/repair-regression/drift-fixture/fixed/evidence.json。此例验证已定位缺陷的有限拖动修复，不证明VLM自动定位或严重自然缺陷处理能力。"
+    },
+    {
+      "name": "严重连接点漂移缺陷",
+      "project": "repair-validation-20260918",
+      "draft": null,
+      "step": "search",
+      "fixture": "not_fixture",
+      "note": "尚无经确认的真实缺陷基线，不能用微小拖动代替或计入自动修复成功率。"
+    },
+    {
+      "name": "明显闭眼残留缺陷",
+      "project": "repair-validation-20260918",
+      "draft": null,
+      "step": "inspect",
+      "fixture": "not_fixture",
+      "note": "现有记录证明显隐操作可执行，尚不能证明对一组明确可见的闭眼残留缺陷稳定有效。"
+    }
+  ]
+}

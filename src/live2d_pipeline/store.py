@@ -70,7 +70,7 @@ class Store:
     def save(self, revision):
         write_json(self.revision_dir(revision.id) / "revision.json", revision.model_dump())
 
-    def create(self, plan, source=None, reference=None, *, parent=...):
+    def create(self, plan, source=None, reference=None, *, parent=..., checkout=True):
         import shutil
 
         state = read_json(self.root / "project.json")
@@ -91,20 +91,25 @@ class Store:
                 if key == "source":
                     rev.source_hash = digest(dest)
         self.save(rev)
-        state["head"] = rev.id
-        write_json(self.root / "project.json", state)
+        if checkout:
+            state["head"] = rev.id
+            write_json(self.root / "project.json", state)
         return rev
 
-    def checkout(self, rid, accept=False):
-        rev = self.get(rid)
-        if accept and rev.status not in {"built", "accepted"}:
-            raise ValueError("Only a completed build can be accepted")
+    def checkout(self, rid):
+        self.get(rid)
         state = read_json(self.root / "project.json")
         state["head"] = rid
-        if accept:
-            state["accepted"] = rid
-            rev.status = "accepted"
-            self.save(rev)
+        write_json(self.root / "project.json", state)
+
+    def accept(self, rid):
+        rev = self.get(rid)
+        if rev.status not in {"built", "accepted"}:
+            raise ValueError("Only a completed build can be accepted")
+        state = read_json(self.root / "project.json")
+        state["accepted"] = rid
+        rev.status = "accepted"
+        self.save(rev)
         write_json(self.root / "project.json", state)
 
     def history(self):

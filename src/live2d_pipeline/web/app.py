@@ -15,12 +15,13 @@ from starlette.datastructures import UploadFile
 from starlette.exceptions import HTTPException
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
-from starlette.responses import FileResponse, JSONResponse
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from ..store import Store, lock, read_json
+from ..store import Store, digest, lock, read_json
 from .jobs import JobRequest, Jobs, tail
+from .presentation import part_names, refinement_changes, resume_targets
 
 STATIC = Path(__file__).parent / "static"
 IMAGES = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
@@ -84,7 +85,13 @@ def previews(store, rev):
             relative = str(path.relative_to(directory))
             contained(directory, relative)
             found.append(
-                {"url": asset_url(store.root.name, rev.id, relative), "label": label, "group": group}
+                {
+                    "url": asset_url(store.root.name, rev.id, relative),
+                    "label": label,
+                    "group": group,
+                    "view": path.stem if group == "poses" else None,
+                    "parameters": {} if group == "poses" else None,
+                }
             )
 
     add(directory / "rig/pose-00.png", "默认姿态", "poses")
@@ -103,9 +110,57 @@ def previews(store, rev):
                 labels.append(
                     ("左眼" if key == "ParamEyeLOpen" else "右眼") + ("闭合" if value < 0.5 else "睁开")
                 )
+            elif key in {
+                "ParamAngleY",
+                "ParamAngleZ",
+                "ParamEyeBallX",
+                "ParamEyeBallY",
+                "ParamBrowLY",
+                "ParamBrowRY",
+                "ParamHairFront",
+                "ParamHairBack",
+            }:
+                labels.append(
+                    {
+                        "ParamAngleY": "抬低头",
+                        "ParamAngleZ": "歪头",
+                        "ParamEyeBallX": "横向视线",
+                        "ParamEyeBallY": "纵向视线",
+                        "ParamBrowLY": "左眉",
+                        "ParamBrowRY": "右眉",
+                        "ParamHairFront": "前发摆动",
+                        "ParamHairBack": "后发摆动",
+                    }[key]
+                    + f" {value:g}"
+                )
+            elif key in {
+                "ParamBodyAngleX",
+                "ParamBodyAngleY",
+                "ParamBodyAngleZ",
+                "ParamEyeBallForm",
+                "ParamMouthForm",
+            }:
+                labels.append(
+                    {
+                        "ParamBodyAngleX": "身体左右",
+                        "ParamBodyAngleY": "身体俯仰",
+                        "ParamBodyAngleZ": "身体倾斜",
+                        "ParamEyeBallForm": "眼睛形状",
+                        "ParamMouthForm": "嘴部表情",
+                    }[key]
+                    + f" {value:g}"
+                )
+            elif key.startswith(("ParamComponent_", "ParamVisible_")):
+                component_file = directory / "rig/components.json"
+                components = read_json(component_file) if component_file.exists() else []
+                component = next(
+                    (c for c in components if key in {c.get("parameter"), c.get("toggle")}), None
+                )
+                labels.append((component["name"] if component else "部件") + f" {value:g}")
             elif key == "ParamMouthOpenY":
                 labels.append("张嘴" if value > 0.5 else "闭嘴")
         add(path, " · ".join(labels) or f"姿态 {index}", "poses")
+        found[-1]["parameters"] = pose
     add(directory / "materials/composite.png", "拆分合成", "art")
     for path in sorted((directory / "image").glob("input.*")):
         add(path, "角色立绘", "art")
@@ -114,7 +169,12 @@ def previews(store, rev):
         for part in read_json(manifest).get("parts", []):
             side = {"left": "左侧", "right": "右侧"}.get(part.get("side"), "")
             label = side + PART_NAMES.get(part.get("semantic"), part["name"])
-            add(contained(directory, "materials/" + part["image"]), label, "layers")
+            add(
+                contained(directory, "materials/" + part["image"]),
+                part["name"] if part.get("binding") else label,
+                "layers",
+            )
+            found[-1]["part"] = part["id"]
     return found
 
 
@@ -126,6 +186,8 @@ def revision_summary(rev):
         "plan": rev.plan.model_dump(),
         "runtime_verified": rev.runtime_verified,
         "source": rev.source,
+        "reference": rev.reference,
+        "resume_targets": resume_targets(rev),
         "stages": {
             key: {"state": value.state, "error": value.error, "files": len(value.artifacts)}
             for key, value in rev.stages.items()
@@ -152,6 +214,7 @@ class LocalRequests:
                 message.setdefault("headers", []).extend(
                     [
                         (b"x-content-type-options", b"nosniff"),
+                        (b"cache-control", b"no-cache"),
                         (b"referrer-policy", b"same-origin"),
                         (
                             b"content-security-policy",
@@ -193,7 +256,10 @@ def create_app(config, projects=None):
                 await run_in_threadpool(jobs.close)
 
     def index(request):
-        return FileResponse(STATIC / "index.html")
+        markup = (STATIC / "index.html").read_text()
+        for asset in ("app.js", "repair.js", "style.css"):
+            markup = markup.replace(f'/static/{asset}"', f'/static/{asset}?v={digest(STATIC / asset)[:12]}"')
+        return HTMLResponse(markup)
 
     def state(request):
         items, warnings = [], []
@@ -238,6 +304,8 @@ def create_app(config, projects=None):
         return JSONResponse({"name": path.name}, 201)
 
     def project_detail(request):
+        from .. import repair
+
         store = store_for(request.path_params["name"])
         project = read_json(store.root / "project.json")
         rid = request.query_params.get("revision") or project["head"]
@@ -262,8 +330,122 @@ def create_app(config, projects=None):
                 "revision": revision_summary(rev) if rev else None,
                 "history": history,
                 "previews": previews(store, rev) if rev else [],
+                "part_names": part_names(store, rev, PART_NAMES) if rev else {},
+                "repair_parts": read_json(store.revision_dir(rev.id) / "materials/parts.json")["parts"]
+                if rev and (store.revision_dir(rev.id) / "materials/parts.json").is_file()
+                else [],
+                "repairs": repair.list_drafts(store, rev.id) if rev else [],
+                "rig_replay": read_json(store.revision_dir(rev.id) / "rig-replay.json")
+                if rev and (store.revision_dir(rev.id) / "rig-replay.json").is_file()
+                else None,
+                "refinement_changes": refinement_changes(store, rev) if rev else [],
+                "video": f"/api/projects/{quote(store.root.name)}/video/{rev.id}?v="
+                + str((store.root / "previews" / rev.id / "preview.mp4").stat().st_mtime_ns)
+                if rev and (store.root / "previews" / rev.id / "preview.mp4").is_file()
+                else None,
+                "review": read_json(store.root / "reviews" / rev.id / "latest.json")
+                if rev and (store.root / "reviews" / rev.id / "latest.json").is_file()
+                else None,
             }
         )
+
+    def repair_payload(store, draft):
+        from .. import repair
+
+        root = repair.directory(store, draft.id)
+        prefix = f"/api/projects/{quote(store.root.name)}/repairs/{draft.id}"
+
+        def url(path):
+            return prefix + "/assets/" + path
+
+        result = draft.model_dump()
+        result.update(
+            source=url("source.png"),
+            before=url("base/composite.png"),
+            mask=prefix + f"/mask?v={draft.version}",
+        )
+        images = []
+        preview = draft.result.get("preview", {})
+        for suffix, label in [
+            ("component.png", "提取 / 替换部件"),
+            ("underpaint.png", "遮挡补全"),
+            ("cleanup-mask.png", "底层清理范围"),
+            ("materials/composite.png", "修正后合成"),
+        ]:
+            path = preview.get("path", "") + "/" + suffix
+            if preview and (root / path).is_file():
+                images.append({"url": url(path), "label": label})
+        for row in preview.get("views", []):
+            images.append({**row, "url": url(row["path"])})
+        for row in draft.result.get("binding_preview", {}).get("views", []):
+            images.append({**row, "url": url(row["path"])})
+        for row in draft.result.get("visual", {}).get("views", []):
+            images.append({**row, "url": url(row["path"])})
+        result["images"] = images
+        segment = draft.result.get("segmentation", {})
+        result["candidates"] = [
+            {**r, "url": url(segment["path"] + "/" + r["mask"])} for r in segment.get("candidates", [])
+        ]
+        context = draft.result.get("rig_context")
+        if context:
+            result["rig_context"] = {**context, "url": url(context["image"])}
+        return result
+
+    async def repairs(request):
+        from .. import repair
+        from ..repair_schema import DraftCreate
+
+        store = store_for(request.path_params["name"])
+        if request.method == "GET":
+            return JSONResponse(repair.list_drafts(store, request.query_params.get("revision")))
+        spec = DraftCreate.model_validate(await request.json())
+        with lock(store.root / ".lock"):
+            draft = repair.create(config, store, spec)
+        return JSONResponse(repair_payload(store, draft), 201)
+
+    async def repair_draft(request):
+        from .. import repair
+        from ..repair_schema import DraftUpdate
+
+        store = store_for(request.path_params["name"])
+        identifier = request.path_params["draft"]
+        if request.method == "PUT":
+            draft = repair.update(store, identifier, DraftUpdate.model_validate(await request.json()))
+        elif request.method == "DELETE":
+            data = await request.json()
+            repair.discard(store, identifier, int(data["version"]))
+            return JSONResponse({"discarded": True})
+        else:
+            draft = repair.load(store, identifier)
+        return JSONResponse(repair_payload(store, draft))
+
+    def repair_asset(request):
+        from .. import repair
+
+        store = store_for(request.path_params["name"])
+        root = repair.directory(store, request.path_params["draft"])
+        path = contained(root, request.path_params["path"])
+        if path.suffix.lower() not in IMAGES or not path.is_file():
+            raise HTTPException(404, "修正图片不存在")
+        return FileResponse(path)
+
+    def repair_mask(request):
+        import io
+        from starlette.responses import Response
+        from .. import repair
+
+        store = store_for(request.path_params["name"])
+        draft = repair.load(store, request.path_params["draft"])
+        stream = io.BytesIO()
+        mask_function = (
+            repair.cleanup_mask if request.query_params.get("layer") == "cleanup" else repair.mask_image
+        )
+        mask_function(
+            repair.directory(store, draft.id),
+            draft,
+            annotations=request.query_params.get("annotations") != "0",
+        ).save(stream, format="PNG")
+        return Response(stream.getvalue(), media_type="image/png", headers={"Cache-Control": "no-store"})
 
     async def submit(request):
         store = store_for(request.path_params["name"])
@@ -273,7 +455,9 @@ def create_app(config, projects=None):
         for token in (spec.source, spec.reference):
             if token and not (config.runtime / "web/uploads" / token).is_file():
                 raise ValueError("上传素材不存在，请重新上传。")
-        record = await run_in_threadpool(jobs.submit, store.root.name, spec)
+        # Linux PDEATHSIG follows the spawning thread, not just its process.
+        # Spawn on the long-lived event-loop thread; inference still runs in the worker.
+        record = jobs.submit(store.root.name, spec)
         return JSONResponse(record, 202)
 
     async def upload(request):
@@ -319,6 +503,19 @@ def create_app(config, projects=None):
         if path.suffix.lower() not in IMAGES or not path.is_file():
             raise HTTPException(404, "预览图片不存在。")
         return FileResponse(path)
+
+    def video(request):
+        store = store_for(request.path_params["name"])
+        rev = store.get(request.path_params["revision"])
+        path = contained(store.root, f"previews/{rev.id}/preview.mp4")
+        if not path.is_file():
+            raise HTTPException(404, "预览视频尚未生成。")
+        return FileResponse(
+            path,
+            media_type="video/mp4",
+            filename=f"{store.root.name}-{rev.id}-preview.mp4",
+            content_disposition_type="attachment" if "download" in request.query_params else "inline",
+        )
 
     async def cancel(request):
         job_directory(request.path_params["job_id"])
@@ -373,7 +570,12 @@ def create_app(config, projects=None):
             Route("/api/projects", create_project, methods=["POST"]),
             Route("/api/projects/{name}", project_detail),
             Route("/api/projects/{name}/jobs", submit, methods=["POST"]),
+            Route("/api/projects/{name}/repairs", repairs, methods=["GET", "POST"]),
+            Route("/api/projects/{name}/repairs/{draft}", repair_draft, methods=["GET", "PUT", "DELETE"]),
+            Route("/api/projects/{name}/repairs/{draft}/mask", repair_mask),
+            Route("/api/projects/{name}/repairs/{draft}/assets/{path:path}", repair_asset),
             Route("/api/projects/{name}/assets/{revision}/{path:path}", asset),
+            Route("/api/projects/{name}/video/{revision}", video),
             Route("/api/uploads", upload, methods=["POST"]),
             Route("/api/jobs/{job_id}/cancel", cancel, methods=["POST"]),
             Route("/api/jobs/{job_id}/logs", logs),
