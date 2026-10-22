@@ -241,3 +241,89 @@ locally and removed from the unpublished commit; their necessary conclusions and
 limitations remain in this journal. No user message identifiers, credentials,
 unrelated project assets or account/session records are included. Only the
 unpublished local commit is amended, with normal fast-forward push still required.
+
+## Publication completed; bounded representation controls
+
+The one authorized retry succeeded as a fast-forward push of
+`9d6cc5a2c55010c521939fb7a6f59b09a863d179`; GitHub's main ref independently matched.
+Actions and check-runs were empty, with no combined statuses. This is publication
+confirmation, not a CI pass. The unpublished 90fcb7a commit was superseded before
+publication. Raw Claude exchanges remain local ignored files.
+
+The command executor works again. Session tools for the existing Codex thread
+are now absent from the available inventory; the earlier message's delivery remains
+uncertain and was not repeated. `common-closure-20261023/HANDOFF.json` confirms the
+implementation is complete and locks released. The supervisor continued only
+temporary deterministic diagnostics, journals and skill guidance, with no new saved
+candidate or binder change.
+
+`probe_identity_warp.py` reproduced the three frontal full-open baseline images.
+Adding only the identity parent reproduced the candidate's exact pixels in all
+three Forms: 3/15/0 pixels differ from baseline by one channel level. Maximum
+actual vertex difference is 0.000162px. This identifies the extra evaluation path
+as the cause of those full-open pixel differences, not the much larger nonidentity
+warp representation error at neutral.
+
+The four cases in `REPRESENTATION-CONTROL.md` were declared before execution.
+`probe_direct_representation.py` applied the same frozen C0/G0 and field directly
+to mesh keys in separate temporary baseline copies. V2 results: original failure
+0.75835px, middle Form holdout 0.75132px, fade boundary 1.00718px. The first two
+meet the diagnostic limits; the fade boundary still fails. Full opening received
+literally no edits and is pixel identical. Formal head, source hashes and revision
+list stayed unchanged. This is not full-grid or transition acceptance.
+
+The run completed before reconnection/compaction; its result file was checked and
+the same control was not restarted. The actual full image, before/after mouth
+contact, isolated fade-boundary contours and the saved candidate's 15-image
+Open/Form matrix were viewed. Double contour is substantially reduced in the
+temporary direct control; faint residual/jaggedness remains. The broad matrix
+shows different widths/curvatures and openings, not distinct phoneme artwork.
+
+`decompose_direct_residual.py` identifies the remaining maximum at the left
+endpoint: vector (-1, -0.120075)px. Its horizontal component splits into predicted
+ribbon support versus C0 (-0.37070px) and rendered ink versus predicted support
+(-0.62930px). Right endpoint is +0.75px = +0.40083 +0.34917. Widths are 36.52153
+geometric, 35.75 static ink and 37.5 dynamic ink. The first attempted geometric
+curve decomposition correctly refused multivalued nonzero-open tip overlaps;
+the final diagnostic uses horizontal support only and does not average that
+ambiguity away. No thresholds or model parameters were changed.
+
+A third Claude Code consultation used safe-mode print, tools disabled, no session
+persistence and only these project facts. Adopted: capture actual direct geometry
+before attributing ink-minus-prediction to stroke support; measure raster phase;
+keep precision-path, spatial representation and support errors separate; do not
+expand to full-grid implementation from three pose controls. Not adopted: its
+claim that normalized-u correction cannot change horizontal support (the formula
+and measured width change contradict that), its suggested universal 1e-3px
+geometry threshold, or treating one static profile's phase sensitivity as a bound
+for all outlines. Its proposed invariant ink-minus-geometry offset remains a
+hypothesis, not an accepted calibration rule.
+
+The additional `capture_direct_geometry.py` replay is restricted to the unchanged
+F0/O.1 saved operations, with actual image equality required before comparison.
+It captures preview canvas geometry and baseline/direct stroke supports, plus four
+fixed viewport phases. It does not claim to capture official Core vertices.
+
+The geometry capture and pixel equality assertions completed. Its first
+postprocessing attempt assumed .1 was an authored key, but it is interpolated;
+the script was corrected to use the stored neighbouring keys and the existing
+captures were summarized without rerendering. Actual-versus-predicted maximum is
+0.000133px across baseline/direct lips and cavity. Direct representation therefore
+removes the earlier .625px field approximation in this checked pose.
+
+Measured right ink-minus-centre changes from +0.67305 to +0.34915px; left changes
+from -0.62418 to -0.62933px. Actual all-vertex bounds explain part of the change:
+the geometric outer extension contracts from ±.75 to about ±.646px. The remaining
+ink-versus-outer-vertex term also changes, so neither a constant cap offset nor
+geometry alone explains the thresholded support. No cap trimming was performed.
+At fixed world geometry, static viewport shifts ±.125px move the measured world
+endpoints by -.125px; shifts ±.25px leave them unchanged. This confirms sampling
+sensitivity and does not reverse the 1.00718px failed gate or calibrate other
+profiles automatically.
+
+Budget accounting: one saved structural candidate in this root-cause phase;
+one identity-only causal control; one predeclared four-pose representation control;
+one unchanged-pose geometry/phase supplement. The supplement uses identical saved
+operations and asserts identical actual pixels. These controls are not new repair
+attempts or a reset of the previous opacity/offset candidate budget. There has been
+no paid image generation, model service start, new account or deployment.

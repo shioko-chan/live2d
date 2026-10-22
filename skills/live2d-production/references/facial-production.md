@@ -142,3 +142,38 @@ retrofit a passing certificate to the old candidate.
 Official Core geometry checks still do not establish visual or tracking acceptance.
 If one authorized structural candidate fails, record the failed representation or
 assumption before another proposal; do not search opacity or offsets to hide it.
+
+### Decompose representation and stroke support before another repair
+
+When unchanged full-open keyforms fail exact pixel preservation after reparenting,
+test an identity-only parent on a disposable baseline. Compare the same pose's
+vertices and actual pixels with both baseline and candidate. An identity transform
+can still change finite-precision evaluation and edge rasterization. Keep that
+cause separate from a nonidentity lattice's spatial approximation error. A direct
+mesh correction that is mathematically zero at full opening must retain the actual
+endpoint keys and hierarchy; do not assume adding zero-valued transforms does so.
+
+A fixed per-pose direct-field control can isolate lattice representation without
+creating a new revision. Preserve input curves, opacity and correction function;
+predeclare cases and retain failures. Passing individually authored pose keys does
+not prove interpolation across a complete Form/Open grid, turns or an ordered
+transition. Verify actual evaluated vertices, not only written keyform deltas.
+
+Distinguish geometric ribbon centres from painted stroke support. At an endpoint,
+record horizontal and vertical error separately. Where possible, decompose the
+horizontal term into geometric support mismatch and ink beyond that support.
+Predicted geometry leaves evaluation error inside the latter term; actual preview
+geometry narrows that uncertainty but is still not official Core evidence. Caps,
+join patches, antialiasing and threshold sampling can contribute. A nonzero-open
+tip overlap may be multivalued in y(x); do not silently collapse it into one curve.
+Mapping each stroke vertex by its current x can also alter stroke support: sharing
+the formula does not establish stable source-u correspondence across paired edges.
+
+Measure subpixel raster-phase sensitivity with fixed world geometry and a shifted
+viewport, recording the viewport in the conversion back to canvas coordinates.
+Sensitivity measured on one painted profile is not a universal bound for generated
+outlines. Keep the original gate result even when a failure is close to the sampling
+resolution. Neither rounding down, discarding endpoints, trimming caps nor relaxing
+the limit is an evidence-backed repair. Calibrate on unchanged baseline and holdout
+poses before adopting an ink-based correspondence; never assume ink-minus-centre
+offset is invariant under deformation.

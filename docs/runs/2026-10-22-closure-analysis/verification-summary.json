@@ -47,5 +47,304 @@
   },
   "psd_layers": 17,
   "export_references_ok": true,
-  "coordination_message": "uncertain transport failure; not resent"
+  "coordination_message": "uncertain transport failure; not resent",
+  "representation_controls": {
+    "identity-warp-control/result.json": {
+      "baseline": "f83489945b5448c1",
+      "candidate_reference": "03e76af8caa54714",
+      "rows": [
+        {
+          "form": -1,
+          "baseline_reproduced": true,
+          "identity_only_equals_candidate": true,
+          "changed_pixels": 3,
+          "max_channel_change": 1,
+          "meshes": {
+            "ArtMeshMouthOpen": {
+              "max_canvas_distance": 0.00016155494416503707,
+              "changed_vertices": 576
+            },
+            "ArtMeshMouthOpen_lip_0": {
+              "max_canvas_distance": 0.00014317821061667345,
+              "changed_vertices": 512
+            },
+            "ArtMeshMouthOpen_lip_1": {
+              "max_canvas_distance": 0.00015297058547863432,
+              "changed_vertices": 491
+            }
+          }
+        },
+        {
+          "form": 0,
+          "baseline_reproduced": true,
+          "identity_only_equals_candidate": true,
+          "changed_pixels": 15,
+          "max_channel_change": 1,
+          "meshes": {
+            "ArtMeshMouthOpen": {
+              "max_canvas_distance": 0.00015297058536715521,
+              "changed_vertices": 596
+            },
+            "ArtMeshMouthOpen_lip_0": {
+              "max_canvas_distance": 0.00014560219777717018,
+              "changed_vertices": 528
+            },
+            "ArtMeshMouthOpen_lip_1": {
+              "max_canvas_distance": 0.0001565247585128001,
+              "changed_vertices": 509
+            }
+          }
+        },
+        {
+          "form": 1,
+          "baseline_reproduced": true,
+          "identity_only_equals_candidate": true,
+          "changed_pixels": 0,
+          "max_channel_change": 0,
+          "meshes": {
+            "ArtMeshMouthOpen": {
+              "max_canvas_distance": 0.0001565247584111155,
+              "changed_vertices": 591
+            },
+            "ArtMeshMouthOpen_lip_0": {
+              "max_canvas_distance": 0.00015000000007603376,
+              "changed_vertices": 522
+            },
+            "ArtMeshMouthOpen_lip_1": {
+              "max_canvas_distance": 0.0001399999999875945,
+              "changed_vertices": 510
+            }
+          }
+        }
+      ],
+      "source_unchanged": true,
+      "head": "358614b7f88146f5",
+      "head_unchanged": true,
+      "no_new_revision": true,
+      "scope": "Three frontal full-open poses; actual temporary identity-warp control, not model acceptance."
+    },
+    "direct-representation-control/result.json": {
+      "records": [
+        {
+          "case": "original-failure",
+          "form": -1,
+          "opening": 0.05,
+          "measurable": true,
+          "max_distance": 0.7583538642586397,
+          "width_ratio": 1.0390625,
+          "within_diagnostic_limits": true
+        },
+        {
+          "case": "fade-boundary",
+          "form": 0,
+          "opening": 0.1,
+          "measurable": true,
+          "max_distance": 1.0071832267394951,
+          "width_ratio": 1.048951048951049,
+          "within_diagnostic_limits": false
+        },
+        {
+          "case": "middle-form-holdout",
+          "form": 0.5,
+          "opening": 0.05,
+          "measurable": true,
+          "max_distance": 0.7513154406929867,
+          "width_ratio": 1.0397350993377483,
+          "within_diagnostic_limits": true
+        },
+        {
+          "case": "full-open-control",
+          "form": 0,
+          "opening": 1,
+          "zero_edit_pixel_identical": true
+        }
+      ],
+      "instrument": "ridge-plateau-v2",
+      "head": "358614b7f88146f5",
+      "head_unchanged": true,
+      "source_unchanged": true,
+      "no_new_revision": true,
+      "scope": "Four predeclared independent temporary pose controls; no full-grid/transition or production acceptance."
+    },
+    "direct-representation-control/actual-geometry/result.json": {
+      "records": [
+        {
+          "mode": "baseline",
+          "role": "upper",
+          "max_actual_vs_predicted_canvas_error": 0.00011674188878393755,
+          "actual_geometric_x_support": [
+            494.74918,
+            546.2019499999999
+          ],
+          "ink_x_support": [
+            494.125,
+            546.875
+          ],
+          "ink_minus_geometry_x": [
+            -0.6241800000000239,
+            0.673050000000103
+          ],
+          "all_vertex_x_bounds": [
+            493.99918,
+            546.95197
+          ],
+          "outer_vertices_minus_ribbon_center_x": [
+            -0.75,
+            0.7500200000000632
+          ],
+          "ink_minus_outer_vertices_x": [
+            0.12581999999997606,
+            -0.07696999999996024
+          ]
+        },
+        {
+          "mode": "baseline",
+          "role": "lower",
+          "max_actual_vs_predicted_canvas_error": 0.00011522223125694315,
+          "actual_geometric_x_support": [
+            494.74918,
+            546.2019499999999
+          ],
+          "ink_x_support": [
+            494.125,
+            546.875
+          ],
+          "ink_minus_geometry_x": [
+            -0.6241800000000239,
+            0.673050000000103
+          ],
+          "all_vertex_x_bounds": [
+            493.99918,
+            546.95197
+          ],
+          "outer_vertices_minus_ribbon_center_x": [
+            -0.75,
+            0.7500200000000632
+          ],
+          "ink_minus_outer_vertices_x": [
+            0.12581999999997606,
+            -0.07696999999996024
+          ]
+        },
+        {
+          "mode": "baseline",
+          "role": "cavity",
+          "max_actual_vs_predicted_canvas_error": 0.00013248557459330388
+        },
+        {
+          "mode": "direct",
+          "role": "upper",
+          "max_actual_vs_predicted_canvas_error": 0.00012513675514108573,
+          "actual_geometric_x_support": [
+            501.75433,
+            538.27585
+          ],
+          "ink_x_support": [
+            501.125,
+            538.625
+          ],
+          "ink_minus_geometry_x": [
+            -0.6293299999999817,
+            0.34915000000000873
+          ],
+          "all_vertex_x_bounds": [
+            501.10812,
+            538.9209
+          ],
+          "outer_vertices_minus_ribbon_center_x": [
+            -0.6462099999999964,
+            0.6450499999999693
+          ],
+          "ink_minus_outer_vertices_x": [
+            0.01688000000001466,
+            -0.29589999999996053
+          ]
+        },
+        {
+          "mode": "direct",
+          "role": "lower",
+          "max_actual_vs_predicted_canvas_error": 9.126021888591809e-05,
+          "actual_geometric_x_support": [
+            501.75433,
+            538.27585
+          ],
+          "ink_x_support": [
+            501.125,
+            538.625
+          ],
+          "ink_minus_geometry_x": [
+            -0.6293299999999817,
+            0.34915000000000873
+          ],
+          "all_vertex_x_bounds": [
+            501.10812,
+            538.9209
+          ],
+          "outer_vertices_minus_ribbon_center_x": [
+            -0.6462099999999964,
+            0.6450499999999693
+          ],
+          "ink_minus_outer_vertices_x": [
+            0.01688000000001466,
+            -0.29589999999996053
+          ]
+        },
+        {
+          "mode": "direct",
+          "role": "cavity",
+          "max_actual_vs_predicted_canvas_error": 9.525197948230505e-05
+        }
+      ],
+      "static_raster_phase_control": [
+        {
+          "viewport_phase_shift": -0.25,
+          "measured_world_endpoint_x_change": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "viewport_phase_shift": -0.125,
+          "measured_world_endpoint_x_change": [
+            -0.125,
+            -0.125
+          ]
+        },
+        {
+          "viewport_phase_shift": 0.125,
+          "measured_world_endpoint_x_change": [
+            -0.125,
+            -0.125
+          ]
+        },
+        {
+          "viewport_phase_shift": 0.25,
+          "measured_world_endpoint_x_change": [
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "actual_pixels_reproduced": true,
+      "scope": "Actual PSD2Live preview canvas vertices at F0/O.1, not official Core or full-grid acceptance. Viewport phase leaves world geometry unchanged; static phase sensitivity is not a universal error bound for other stroke profiles.",
+      "source_unchanged": true,
+      "head_unchanged": true,
+      "no_new_revision": true,
+      "execution_note": "Render and integrity assertions completed; fixed postprocessing interpolation of .1 between authored keys, then summarized existing captures without rerender."
+    }
+  },
+  "representation_control_evidence_hashes": {
+    "identity-warp-control/result.json": "899a779290db14098a4c8a50e11976d786fbb7ee276f3d45ffea09b411fdbcf0",
+    "direct-representation-control/result.json": "f6baff3990a78bf5e9aec11a6a0336384106d0a6c7af6a208e2cbf5630cea2ad",
+    "direct-representation-control/residual-decomposition.json": "7a22e431e54e9e5f0d8742533701e7c08e42202cb58fda3fe8b4d56ad02b6918",
+    "direct-representation-control/actual-geometry/result.json": "e6ab36405f59e96060aa0964b892481197b4f490d40311716221121999f3e769"
+  },
+  "post_control_formal_integrity": {
+    "head": {
+      "head": "358614b7f88146f5",
+      "accepted": null
+    },
+    "files_checked": 96,
+    "changed_files": []
+  }
 }
