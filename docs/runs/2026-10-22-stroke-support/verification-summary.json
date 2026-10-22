@@ -616,5 +616,175 @@
       ]
     }
   ],
-  "scope": "Structural/preparation milestone only. No model promotion, new generation, target-app, complete transition grid or new model Core acceptance."
+  "scope": "Structural/preparation milestone only. No model promotion, new generation, target-app, complete transition grid or new model Core acceptance.",
+  "quadratic_preflight": {
+    "scope": "Fixed individually authored pose keys; not consolidated-grid interpolation or accepted model",
+    "actual_renders": 26,
+    "independent_v2_gate": [
+      {
+        "pose": "neutral",
+        "exit_code": 0,
+        "max_distance": 0.6238632414269887,
+        "width_ratio": 1.0,
+        "passed": true
+      },
+      {
+        "pose": "original-failure",
+        "exit_code": 0,
+        "max_distance": 0.7764181637792101,
+        "width_ratio": 1.0,
+        "passed": true
+      },
+      {
+        "pose": "fade-boundary",
+        "exit_code": 0,
+        "max_distance": 0.7072216413388588,
+        "width_ratio": 1.020979020979021,
+        "passed": true
+      },
+      {
+        "pose": "negative-holdout",
+        "exit_code": 0,
+        "max_distance": 0.7505556137204802,
+        "width_ratio": 1.0148148148148148,
+        "passed": true
+      },
+      {
+        "pose": "positive-holdout",
+        "exit_code": 0,
+        "max_distance": 0.7545289218340956,
+        "width_ratio": 1.0066225165562914,
+        "passed": true
+      }
+    ],
+    "geometry_summary": {
+      "records": [
+        {
+          "case": "neutral",
+          "ink_distance": 0.6238632414269887,
+          "width_ratio": 1.0,
+          "normal_interior_min_max": [
+            1.499905750402261,
+            1.5000831849583454
+          ],
+          "static_equals_B": true,
+          "neutral_equal": true,
+          "new_flips": 0,
+          "new_collapses": 0,
+          "max_geometry_error": 0.00011048875364139783,
+          "coverage_max_error": 0.00016194134735267638
+        },
+        {
+          "case": "original-failure",
+          "ink_distance": 0.7764181637792101,
+          "width_ratio": 1.0,
+          "normal_interior_min_max": [
+            1.4999150130978298,
+            1.5008477392613875
+          ],
+          "static_equals_B": true,
+          "neutral_equal": null,
+          "new_flips": 0,
+          "new_collapses": 0,
+          "max_geometry_error": 0.00011928138818534307,
+          "coverage_max_error": 0.00015811388296872915
+        },
+        {
+          "case": "fade-boundary",
+          "ink_distance": 0.7072216413388588,
+          "width_ratio": 1.020979020979021,
+          "normal_interior_min_max": [
+            1.4998975701650694,
+            1.5045862956334541
+          ],
+          "static_equals_B": true,
+          "neutral_equal": null,
+          "new_flips": 0,
+          "new_collapses": 0,
+          "max_geometry_error": 0.00010925202837320478,
+          "coverage_max_error": 0.00015132745946773178
+        },
+        {
+          "case": "negative-holdout",
+          "ink_distance": 0.7505556137204802,
+          "width_ratio": 1.0148148148148148,
+          "normal_interior_min_max": [
+            1.499924090296536,
+            1.5023720440886648
+          ],
+          "static_equals_B": true,
+          "neutral_equal": null,
+          "new_flips": 0,
+          "new_collapses": 0,
+          "max_geometry_error": 9.324936211120299e-05,
+          "coverage_max_error": 0.00014422205106433763
+        },
+        {
+          "case": "positive-holdout",
+          "ink_distance": 0.7545289218340956,
+          "width_ratio": 1.0066225165562914,
+          "normal_interior_min_max": [
+            1.4999091915892893,
+            1.5004079593895354
+          ],
+          "static_equals_B": true,
+          "neutral_equal": null,
+          "new_flips": 0,
+          "new_collapses": 0,
+          "max_geometry_error": 0.00012271433803373154,
+          "coverage_max_error": 0.00015297058536715521
+        }
+      ],
+      "full_open_identical": true
+    },
+    "visual_preflight": "passed_for_viewed_fixed_cases",
+    "formal_applied": false,
+    "new_revision": false
+  },
+  "material_mesh_coverage_diagnostic": {
+    "source_size": [
+      54,
+      13
+    ],
+    "mesh_source_x_edges": [
+      9,
+      45
+    ],
+    "alpha_mass_outside_x_span_fraction": 0.09848260248497426,
+    "counts": {
+      "1": {
+        "all": 318,
+        "outside_horizontal_mesh_span": 63
+      },
+      "8": {
+        "all": 235,
+        "outside_horizontal_mesh_span": 36
+      },
+      "113": {
+        "all": 155,
+        "outside_horizontal_mesh_span": 16
+      },
+      "128": {
+        "all": 147,
+        "outside_horizontal_mesh_span": 13
+      },
+      "255": {
+        "all": 19,
+        "outside_horizontal_mesh_span": 0
+      }
+    },
+    "scope": "Raw prepared alpha outside proven mesh horizontal support; not a visibility-weighted or perceptual quality score."
+  },
+  "quadratic_evidence_sha256": {
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/quadratic-result.json": "8ee07396b394c45ba0d0ab858cfde7740c8d8094c69db9a0b1f3030a6974ddd7",
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/quadratic-summary.json": "74d3906814c5b900ff37a36216b6c87a705ee8c2a8cb936063328d8de5e136db",
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/quadratic-contact.png": "4a2ff529f0a39ffc80a57838cf8b13711b708c6cddeeb800d89bb23a2fb3ae58",
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/quadratic-isolated.png": "51978e72f75e9d0c25948bffe11bee3e4455c3cf5d61e56e43e7a917775990cb",
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/continuous-feasibility.json": "98fd94e508d6f62a1bf7a18af65d7a532114f54f3e78955112fcba8899056b99",
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/source-uv-audit.json": "7d2188a1135f43261c13f4aed2e988d03fdffe70bdc20bf9c287e329a9ffe2a6",
+    "projects/mio-starlibrary-20261015/production/stroke-support-20261023/support-mask-trace.json": "f8064af42ab460763afda55f78c80fea7e9118ef4849628f5b0b30ad646558ad",
+    "projects/mio-starlibrary-20261015/production/identity-prep-20261023/independent-quadratic-measurements.json": "1862de8e1e89908f760c98b5b3d695966d38473de828b77aa9abbc887a913d4d",
+    "projects/mio-starlibrary-20261015/production/identity-prep-20261023/mouth-source-coverage.png": "708a872c3f35769b8a5bf9ac0b8a050a150b70261d4ed42c6e4ec842c3e1d03b",
+    "projects/mio-starlibrary-20261015/production/identity-prep-20261023/mouth-source-coverage.json": "d4ba21d88219c00deb2a69d59baf9a629777befc427b01f54e50059fe981ed19"
+  }
 }

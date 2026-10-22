@@ -145,3 +145,29 @@ not done, so the closed95pixel residual is not assigned a single proven cause.
 Three real deterministic repair regressions completed and were visually inspected;
 arrival error for the injected4px attachment defect is.0176409px. All runtime locks
 were released before handing the bounded mouth preflight to original Codex.
+
+## Fixed quadratic actual preflight — independently passed, limited scope
+
+Exactly26new actual images completed. Independent supervisor CLI replay confirmed
+5/5 cases pass unchanged ink thresholds: .623863, .776418, .707222, .750556,
+.754529px. Viewed the full composites and isolated upper/lower/cavity comparisons.
+Normal interior widths are approximately1.4999..1.5046px, no longer the B field's
+.5839px collapse. No new visible-pose crossings/flips or area collapses; static
+isolated layers match B, neutral actual RGBA and literal full-open control match.
+This accepts a fixed-pose preflight only, not a complete keyform representation.
+
+Next acknowledged task: freeze this same representation and inspect complete
+existing9x33grid/inter-key offline behavior, supported batch API and operation/
+storage costs before actual consolidated authoring. Existing portable base is
+about201MB; do not silently launch hundreds of history writes or edit its archive.
+Original Codex owns reusable mouth math/tests; supervisor remains sole publisher.
+
+Independent source-coverage visual: full54px prepared mouth and actual static
+render at the same world rectangle show shortened ends.9.84826% of source alpha
+mass and36/235 source pixels with alpha>=8 lie outside the proven x9..45 mesh
+span. These are coverage diagnostics, not perceptual scores. Added the demonstrated
+mesh/UV coverage gap to quality-checks.md without changing the frozen baseline.
+
+Published stage69f9c3b8a2160f6836d9de287d3ef05b3850b207 successfully to the existing
+origin/main; independent GitHub ref matches. Actions0, check-runs0, statuses[]:
+no CI run is claimed. Full raw publication receipt remains local/ignored.

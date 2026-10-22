@@ -46,6 +46,15 @@ Prioritize identity/face, eye/mouth gaps, silhouette tears and attachment drift,
 then accessory polish. Layer counts are not quality targets; new layers should
 enable requested motions or prevent visible artifacts.
 
+For thin facial strokes, also compare the placed PNG's visible support with the
+bound mesh and UV coverage. A complete texture in the atlas does not prove that
+the mesh draws its endpoints. Small antialiased staircase fragments can become
+separate islands under four-connected contour tracing and be removed by component
+area filters. When a rendered stroke is shorter, trace alpha preprocessing,
+connected components, mesh bounds and actual UVs before blaming keyform scaling.
+Treat this as a source-coverage defect; do not quietly widen a frozen comparison
+baseline while evaluating a different deformation repair.
+
 For pipeline comparisons, fix inputs, tested poses and comparable compute budgets.
 Record manual interventions and provider changes separately from orchestration
 changes. A smoke test on an existing asset establishes tool operability, not
