@@ -81,6 +81,34 @@ artwork was acceptable. Do not silently stretch a part to fit a planned box;
 resolve the artwork/placement mismatch and recheck identity. Passing material
 composition or runtime checks does not override a failed identity comparison.
 
+For a confirmed preparation-only aspect distortion, use
+`scripts/prepare_component.py SOURCE OUTPUT.png --crop L T R B --width W
+--canvas-anchor X Y` (or `--height H`) to prepare a fresh PNG and transform receipt.
+The tool accepts one target dimension, preserves the native crop, uses premultiplied
+alpha for filtering and reports the small aspect error introduced by integer output
+dimensions. It never overwrites an existing output or its receipt. The default
+source anchor is the crop-box centre; use `--source-anchor U V` for an explicitly
+verified normalized anchor. This does not detect the pupil, gaze pivot or identity.
+Record which anchor is held and any integer placement error. Reproduce the old
+dimensions with the same filter first, so a changed filter is not mistaken for an
+aspect correction. At unchanged dimensions preserve original RGBA bytes.
+
+Do not force an elongated iris into the visible eye aperture by shortening its
+texture. Keep inspected hidden pixels and test the actual eyewhite clipping at
+open, half-open, closed, one-eye closure, gaze and head turns. An unmasked material
+composite is not a clipping test. Correcting aspect may change UVs, mesh topology
+or parent frames; inspect rebuild/replay warnings and revalidate old keyforms.
+A fresh-binder control can establish its own clipping behavior, but cannot prove
+preservation of an authored production rig whose historical keys were not replayed.
+Use the actual renderer's masking semantics when defining a pixel leakage check.
+In the pinned PSD2Live preview, clipping uses the mask mesh's deformed triangle
+area, not its texture-alpha support. Iris pixels outside an isolated eyewhite PNG's
+alpha therefore do not alone prove a clipping leak. Retain that observation as a
+diagnostic, inspect the actual composite and geometry, and test official runtime
+masking separately. A known-broken fresh baseline cannot certify eye quality.
+Compare reference, generated source, old preparation and corrected output; fixing
+resampling does not restore a changed source colour, pupil or highlight design.
+
 ## Use the agent image tool effectively
 
 Follow the tool's image-editing instructions. Supply the actual image/layer and a

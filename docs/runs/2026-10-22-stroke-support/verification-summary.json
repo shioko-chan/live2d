@@ -1,0 +1,620 @@
+{
+  "formal": {
+    "head": "358614b7f88146f5",
+    "accepted": null
+  },
+  "formal_hash_count": 96,
+  "formal_files_unchanged": true,
+  "promoted": false,
+  "tests": {
+    "pytest_passed": 313,
+    "warnings": 2,
+    "ruff": "passed",
+    "skill_validation": "passed",
+    "diff_check": "passed"
+  },
+  "mouth": {
+    "actual_renders": 52,
+    "independent_v2_gate": [
+      {
+        "pose": "neutral",
+        "exit_code": 0,
+        "max_distance": 0.565646559395077,
+        "width_ratio": 1.0,
+        "passed": true
+      },
+      {
+        "pose": "original-failure",
+        "exit_code": 0,
+        "max_distance": 0.3490197806063198,
+        "width_ratio": 1.0,
+        "passed": true
+      },
+      {
+        "pose": "fade-boundary",
+        "exit_code": 0,
+        "max_distance": 0.5000081032950491,
+        "width_ratio": 1.020979020979021,
+        "passed": true
+      },
+      {
+        "pose": "negative-holdout",
+        "exit_code": 0,
+        "max_distance": 0.38281362895815085,
+        "width_ratio": 1.0148148148148148,
+        "passed": true
+      },
+      {
+        "pose": "positive-holdout",
+        "exit_code": 0,
+        "max_distance": 0.2854521600529605,
+        "width_ratio": 1.0066225165562914,
+        "passed": true
+      }
+    ],
+    "thresholds": {
+      "max_distance": 1,
+      "max_width_error": 0.1
+    },
+    "normal_width_failure_px": 0.5839,
+    "stroke_visual_acceptance": false,
+    "new_revision": false,
+    "normal_only_reconstruction": "failed offline crossings/flips"
+  },
+  "identity": {
+    "draft": "96cc6000a88d4277b246697d5e737fe3",
+    "applied": false,
+    "actual_renders": 84,
+    "geometry_reproduction_renders": 2,
+    "aspect_factors": [
+      0.9992630803242446,
+      0.9972921472269581
+    ],
+    "crop_center_error": [
+      0,
+      0
+    ],
+    "replay_review_required": 73,
+    "safe_auto_replay": 0,
+    "raw_pose_diagnostics": [
+      {
+        "pose": "neutral",
+        "baseline_iris_pixels_outside_white_alpha_support": 10,
+        "baseline_iris_alpha_bbox": [
+          426,
+          354,
+          620,
+          394
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 10,
+        "uniform_iris_alpha_bbox": [
+          426,
+          354,
+          620,
+          396
+        ],
+        "changed_bbox": [
+          390,
+          339,
+          662,
+          396
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "half",
+        "baseline_iris_pixels_outside_white_alpha_support": 25,
+        "baseline_iris_alpha_bbox": [
+          426,
+          368,
+          620,
+          390
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 35,
+        "uniform_iris_alpha_bbox": [
+          426,
+          368,
+          620,
+          390
+        ],
+        "changed_bbox": [
+          403,
+          349,
+          663,
+          408
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "closed",
+        "baseline_iris_pixels_outside_white_alpha_support": 0,
+        "baseline_iris_alpha_bbox": null,
+        "uniform_iris_pixels_outside_white_alpha_support": 0,
+        "uniform_iris_alpha_bbox": null,
+        "changed_bbox": [
+          400,
+          357,
+          661,
+          419
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "wink-left",
+        "baseline_iris_pixels_outside_white_alpha_support": 3,
+        "baseline_iris_alpha_bbox": [
+          576,
+          354,
+          620,
+          394
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 8,
+        "uniform_iris_alpha_bbox": [
+          576,
+          354,
+          620,
+          396
+        ],
+        "changed_bbox": [
+          400,
+          339,
+          662,
+          419
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "wink-right",
+        "baseline_iris_pixels_outside_white_alpha_support": 7,
+        "baseline_iris_alpha_bbox": [
+          426,
+          354,
+          470,
+          394
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 2,
+        "uniform_iris_alpha_bbox": [
+          426,
+          354,
+          470,
+          396
+        ],
+        "changed_bbox": [
+          390,
+          339,
+          661,
+          396
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "gaze-left",
+        "baseline_iris_pixels_outside_white_alpha_support": 10,
+        "baseline_iris_alpha_bbox": [
+          419,
+          354,
+          613,
+          394
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 15,
+        "uniform_iris_alpha_bbox": [
+          419,
+          354,
+          613,
+          396
+        ],
+        "changed_bbox": [
+          390,
+          339,
+          662,
+          396
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "gaze-right",
+        "baseline_iris_pixels_outside_white_alpha_support": 13,
+        "baseline_iris_alpha_bbox": [
+          433,
+          354,
+          627,
+          394
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 10,
+        "uniform_iris_alpha_bbox": [
+          433,
+          354,
+          627,
+          396
+        ],
+        "changed_bbox": [
+          390,
+          339,
+          662,
+          396
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "gaze-up",
+        "baseline_iris_pixels_outside_white_alpha_support": 18,
+        "baseline_iris_alpha_bbox": [
+          426,
+          354,
+          620,
+          388
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 15,
+        "uniform_iris_alpha_bbox": [
+          426,
+          354,
+          620,
+          394
+        ],
+        "changed_bbox": [
+          390,
+          339,
+          662,
+          396
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "gaze-down",
+        "baseline_iris_pixels_outside_white_alpha_support": 0,
+        "baseline_iris_alpha_bbox": [
+          426,
+          356,
+          620,
+          396
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 10,
+        "uniform_iris_alpha_bbox": [
+          426,
+          354,
+          620,
+          396
+        ],
+        "changed_bbox": [
+          390,
+          339,
+          662,
+          396
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "turn-left",
+        "baseline_iris_pixels_outside_white_alpha_support": 8,
+        "baseline_iris_alpha_bbox": [
+          420,
+          348,
+          608,
+          389
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 2,
+        "uniform_iris_alpha_bbox": [
+          420,
+          348,
+          608,
+          391
+        ],
+        "changed_bbox": [
+          367,
+          283,
+          654,
+          457
+        ],
+        "changed_outside_eye_roi": 1
+      },
+      {
+        "pose": "turn-right",
+        "baseline_iris_pixels_outside_white_alpha_support": 12,
+        "baseline_iris_alpha_bbox": [
+          437,
+          361,
+          625,
+          400
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 13,
+        "uniform_iris_alpha_bbox": [
+          437,
+          361,
+          625,
+          402
+        ],
+        "changed_bbox": [
+          389,
+          345,
+          670,
+          403
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "turn-half-left",
+        "baseline_iris_pixels_outside_white_alpha_support": 10,
+        "baseline_iris_alpha_bbox": [
+          437,
+          361,
+          625,
+          400
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 9,
+        "uniform_iris_alpha_bbox": [
+          437,
+          361,
+          625,
+          402
+        ],
+        "changed_bbox": [
+          393,
+          345,
+          670,
+          415
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "turn-gaze-left",
+        "baseline_iris_pixels_outside_white_alpha_support": 9,
+        "baseline_iris_alpha_bbox": [
+          430,
+          361,
+          619,
+          400
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 10,
+        "uniform_iris_alpha_bbox": [
+          430,
+          361,
+          619,
+          402
+        ],
+        "changed_bbox": [
+          389,
+          345,
+          670,
+          403
+        ],
+        "changed_outside_eye_roi": 0
+      },
+      {
+        "pose": "half-gaze-down",
+        "baseline_iris_pixels_outside_white_alpha_support": 14,
+        "baseline_iris_alpha_bbox": [
+          426,
+          368,
+          620,
+          390
+        ],
+        "uniform_iris_pixels_outside_white_alpha_support": 29,
+        "uniform_iris_alpha_bbox": [
+          426,
+          368,
+          620,
+          390
+        ],
+        "changed_bbox": [
+          403,
+          349,
+          663,
+          408
+        ],
+        "changed_outside_eye_roi": 0
+      }
+    ],
+    "white_alpha_metric_scope": "Diagnostic only; preview masks with deformed triangle area, not white texture alpha",
+    "actual_geometry": [
+      {
+        "target": "neutral/ArtMeshEyelashL",
+        "vertices": 82,
+        "max_canvas_distance": 8.944271912838193e-05,
+        "changed_vertices": 66
+      },
+      {
+        "target": "neutral/ArtMeshEyelashR",
+        "vertices": 66,
+        "max_canvas_distance": 0.00020000000006348273,
+        "changed_vertices": 54
+      },
+      {
+        "target": "neutral/ArtMeshEyewhiteL",
+        "vertices": 20,
+        "max_canvas_distance": 7.211102553216881e-05,
+        "changed_vertices": 15
+      },
+      {
+        "target": "neutral/ArtMeshEyewhiteR",
+        "vertices": 19,
+        "max_canvas_distance": 9.999999997489795e-05,
+        "changed_vertices": 15
+      },
+      {
+        "target": "neutral/ArtMeshEyebrowL",
+        "vertices": 16,
+        "max_canvas_distance": 0.0,
+        "changed_vertices": 0
+      },
+      {
+        "target": "neutral/ArtMeshEyebrowR",
+        "vertices": 16,
+        "max_canvas_distance": 0.0,
+        "changed_vertices": 0
+      },
+      {
+        "target": "closed/ArtMeshEyelashL",
+        "vertices": 82,
+        "max_canvas_distance": 0.00010000000003174137,
+        "changed_vertices": 63
+      },
+      {
+        "target": "closed/ArtMeshEyelashR",
+        "vertices": 66,
+        "max_canvas_distance": 0.00015297058536715521,
+        "changed_vertices": 48
+      },
+      {
+        "target": "closed/ArtMeshEyewhiteL",
+        "vertices": 20,
+        "max_canvas_distance": 9.899494935734463e-05,
+        "changed_vertices": 15
+      },
+      {
+        "target": "closed/ArtMeshEyewhiteR",
+        "vertices": 19,
+        "max_canvas_distance": 0.00010770329610298768,
+        "changed_vertices": 14
+      },
+      {
+        "target": "closed/ArtMeshEyebrowL",
+        "vertices": 16,
+        "max_canvas_distance": 0.0,
+        "changed_vertices": 0
+      },
+      {
+        "target": "closed/ArtMeshEyebrowR",
+        "vertices": 16,
+        "max_canvas_distance": 0.0,
+        "changed_vertices": 0
+      },
+      {
+        "target": "turn-left/ArtMeshEyelashL",
+        "vertices": 82,
+        "max_canvas_distance": 0.12940714663415526,
+        "changed_vertices": 82
+      },
+      {
+        "target": "turn-left/ArtMeshEyelashR",
+        "vertices": 66,
+        "max_canvas_distance": 0.10746131024704327,
+        "changed_vertices": 66
+      },
+      {
+        "target": "turn-left/ArtMeshEyewhiteL",
+        "vertices": 20,
+        "max_canvas_distance": 0.1292752045057558,
+        "changed_vertices": 20
+      },
+      {
+        "target": "turn-left/ArtMeshEyewhiteR",
+        "vertices": 19,
+        "max_canvas_distance": 0.10737026823101749,
+        "changed_vertices": 19
+      },
+      {
+        "target": "turn-left/ArtMeshEyebrowL",
+        "vertices": 16,
+        "max_canvas_distance": 0.0,
+        "changed_vertices": 0
+      },
+      {
+        "target": "turn-left/ArtMeshEyebrowR",
+        "vertices": 16,
+        "max_canvas_distance": 0.0,
+        "changed_vertices": 0
+      }
+    ],
+    "reopened_closed_rgba_identical": true,
+    "identity_acceptance": false,
+    "authored_rig_preservation": "not_established"
+  },
+  "real_regression": [
+    {
+      "name": "两只耳饰拆分",
+      "project": "repair-materials-20260918",
+      "clone": "747d6cbabb0c4786a5bb06cd08c8b01f",
+      "status": "completed",
+      "checks": [
+        {
+          "name": "掩膜包含可见像素",
+          "status": "pass"
+        },
+        {
+          "name": "默认姿态合成像素不变",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "缺失开口口型补充",
+      "project": "repair-materials-20260918",
+      "clone": "4e61d7bf012d41c8a9774203aec08bb4",
+      "status": "completed",
+      "checks": [
+        {
+          "name": "掩膜包含可见像素",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "已知4像素连接点漂移修复",
+      "project": "repair-defects-20260919-fixed",
+      "clone": "7103232459da48f7aca3d5c5bcdb26ce",
+      "status": "completed",
+      "checks": [
+        {
+          "name": "姿态 0 无新增翻折或塌缩",
+          "status": "pass"
+        },
+        {
+          "name": "姿态 0 固定点漂移 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.0
+        },
+        {
+          "name": "姿态 1 无新增翻折或塌缩",
+          "status": "pass"
+        },
+        {
+          "name": "问题姿态移动点到达误差 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.01764091834337921
+        },
+        {
+          "name": "姿态 1 固定点漂移 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.0
+        },
+        {
+          "name": "姿态 2 无新增翻折或塌缩",
+          "status": "pass"
+        },
+        {
+          "name": "姿态 2 固定点漂移 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.0
+        },
+        {
+          "name": "姿态 3 无新增翻折或塌缩",
+          "status": "pass"
+        },
+        {
+          "name": "姿态 3 固定点漂移 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.0
+        },
+        {
+          "name": "姿态 4 无新增翻折或塌缩",
+          "status": "pass"
+        },
+        {
+          "name": "姿态 4 固定点漂移 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.0
+        },
+        {
+          "name": "姿态 5 无新增翻折或塌缩",
+          "status": "pass"
+        },
+        {
+          "name": "姿态 5 固定点漂移 ≤ 0.5 像素",
+          "status": "pass",
+          "pixels": 0.0
+        }
+      ]
+    }
+  ],
+  "scope": "Structural/preparation milestone only. No model promotion, new generation, target-app, complete transition grid or new model Core acceptance."
+}

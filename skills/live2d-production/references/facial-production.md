@@ -177,3 +177,26 @@ resolution. Neither rounding down, discarding endpoints, trimming caps nor relax
 the limit is an evidence-backed repair. Calibrate on unchanged baseline and holdout
 poses before adopting an ink-based correspondence; never assume ink-minus-centre
 offset is invariant under deformation.
+
+For the pinned procedural mouth, verify pair, cap, join and cavity ownership
+against evaluated geometry. Reversed tip-overlap points are not additional source
+columns: path index, current vertex x and arc length can assign different u values
+to vertices belonging to the same source column. `StrokeOwnership` in
+`mouth_closure` encodes this topology explicitly; it is not a general mesh importer.
+Check centres and patch owners, not only vertex counts, before using it.
+
+Preserving each owner's offsets can preserve pair lengths while reducing width
+normal to the new tangent. Inspect normal width, tangent rotation, shear, triangle
+orientation and visible cavity coverage in addition to the painted-seam gate.
+Conversely, rebuilding normals on a jagged measured ridge can create folded
+offset boundaries. Keep the measurement polyline separate from a production
+centreline; a proposed continuous representation needs declared source support,
+endpoint constraints and curvature/boundary checks before actual render tests.
+Do not silently smooth the acceptance curve or substitute a geometric gate.
+
+When using native artwork to inform that centreline, trace crop, placement, mesh
+support and UVs separately. The complete source ridge may extend beyond the
+current visible mesh. Preserve full-source comparison failures alongside any
+explicitly restricted support audit. Higher source resolution does not guarantee
+a smooth extracted ridge, and passing isolated authored poses does not establish
+interpolation, head-turn combinations or visual stroke quality.
