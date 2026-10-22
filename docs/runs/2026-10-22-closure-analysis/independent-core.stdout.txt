@@ -1,0 +1,24 @@
+Live2D shell ready. No model services started.
+{
+  "status": "passed",
+  "core_geometry_check": "passed",
+  "frames": 17,
+  "vertices": 9918,
+  "vertex_checks": 168606,
+  "drawables": 20,
+  "parameters": 24,
+  "core_version": 100663297,
+  "duration": 1.6,
+  "hashes": {
+    "core_sha256": "fa57d2357f541819e434e0fb9d0ba751c0f6e3f492ac4c56a5b256f5bac072c0",
+    "moc_sha256": "38815b3d567a340bc6d1e36125aaebddd4cd8e9a5d38cdec8ad1aaf8703b48d0",
+    "trace_sha256": "9b86b7a9a48dd22fff55393ed2a45bbcb16eeac1103ad7ef0d1e81e79262184a"
+  },
+  "runtime_verified": false,
+  "physics_solver_parity": "not_evaluated",
+  "rendered_pixels": "not_evaluated",
+  "target_application": "not_evaluated",
+  "scope": "Core sequential parameter updates and finite drawable geometry only",
+  "frames_requested": 17,
+  "worker_exit_code": 0
+}

@@ -1,0 +1,22 @@
+{
+  "revision": "1bf0686147f84cca",
+  "pose": {
+    "ParamMouthOpenY": 0.05,
+    "ParamMouthForm": -1,
+    "ParamAngleX": 0
+  },
+  "forced_opacity": 1,
+  "viewport": [
+    464,
+    448,
+    120,
+    80
+  ],
+  "pixels_per_canvas_unit": 4,
+  "source": "projects/mio-starlibrary-20261015/production/closure-geometry-analysis-20261022/renders/open-0.05_form--1_turn-0",
+  "expected": "Known failed static/dynamic width alignment. Test success means defect reproduced, not visual acceptance.",
+  "sha256": {
+    "closed.png": "d13388d069dd7b96331675158de1e0cf7b88d389e2fceba7e0a02c48b22824a9",
+    "upper.png": "143298a77a935bdff0c81b576fcc5f5f4e3d4f1a5477bdbb31938a5c33403f64"
+  }
+}

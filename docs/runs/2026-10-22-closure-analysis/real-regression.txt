@@ -1,0 +1,5 @@
+Live2D shell ready. No model services started.
+两只耳饰拆分: completed
+缺失开口口型补充: completed
+已知4像素连接点漂移修复: completed
+Report: /home/kurage/Projects/live2d/projects/mio-starlibrary-20261015/production/independent-closure-analysis-20261022/real-regression.json

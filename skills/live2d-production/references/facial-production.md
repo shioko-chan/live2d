@@ -92,3 +92,53 @@ expression, and release back to live controls. Preview scripted parameter driver
 locally when tracking is unavailable, and label that scope. Never claim live lip
 sync integration from a prerecorded mouth-opening curve. Save the request, trace,
 selected frames and unresolved driver conflicts alongside the library snapshot.
+
+## Shared closure correspondence and measurable failure
+
+Before changing a fading closed/open mouth pair, isolate Closed, upper lip,
+low lip and cavity with the renderer's `include_layer_ids` on a disposable copy.
+Render both authored opacity and forced opacity 1; never alter the saved candidate
+just to measure its hidden contours. Freeze viewport, scale, score threshold,
+poses and acceptance limits before evaluating the candidate. Preserve the exact
+baseline and keep geometry acceptance separate from opacity and visual judgment.
+
+Translation cannot correct different widths or curvature. For an opt-in common
+closure design, define a neutral painted seam C0(u) and existing dynamic closed
+curves G(Form,u), with the same verified source-column u for all components.
+C(Form,u) = C0(u) + G(Form,u) - G(0,u) preserves the neutral static shape.
+Its shared dynamic correction is C0(u) - G(0,u); recover u through the current
+Form/Open horizontal mapping, rather than matching arbitrary canvas x. Fade this
+correction to exactly zero at full opening. Apply it to upper/lower lips and cavity
+together; do not double-apply inherited head transforms. A mathematical identity
+does not prove a finite mesh/lattice can represent the curve: measure actual output.
+
+`live2d_pipeline.mouth_closure` provides explicitly supplied curve sampling and
+correction math. It is not an automatic anatomy detector or a global binder
+replacement. `Frame.fit` requires finite, noncollinear correspondences and rejects
+non-axis-aligned mappings; use a verified inverse for other frames. Inspect pinned
+mesh topology before extracting a ribbon centre; caps, overlaps and joins must not
+be guessed. Reject missing/ambiguous contours instead of fabricating anchors.
+
+Use `scripts/measure_mouth_closure.py DIRECTORY --viewport L T W H
+--max-distance LIMIT --max-width-error LIMIT --output REPORT.json` for independently
+rendered closed.png/upper.png/lower.png. It measures 21 shared-u samples including
+endpoints and separately reports component support widths. Record raster resolution
+and threshold sensitivity; do not relax limits after a failure. This is painted
+support, not anatomical mouth width. Preserve normal upper/lower separation at large
+opening, and inspect cavity coverage separately. Check the original failing pose,
+all Form extrema/defaults, middle Forms, fade interiors, small head turns, exact
+neutral/full-open endpoints, eyes/winks and a bounded ordered real-render sweep.
+Calibrate the extractor with coincident geometric strokes having different widths
+and intensity profiles, not only copies, translations and width changes of one
+profile. A first-maximum detector selects the upper edge of a flat dark plateau;
+it can falsely move an otherwise aligned centreline as thickness changes. The
+measurement helper centres the peak plateau and rejects equally dark peaks in
+disconnected ink components. This is for isolated contours, not a rule against
+normal upper/lower mouth borders. Reports identify the measurement version. If a
+calibration bug changes the instrument, retain the old gate/results, rerun positive
+and negative controls, and label new measurements separately; do not silently
+retrofit a passing certificate to the old candidate.
+
+Official Core geometry checks still do not establish visual or tracking acceptance.
+If one authorized structural candidate fails, record the failed representation or
+assumption before another proposal; do not search opacity or offsets to hide it.

@@ -1,0 +1,6 @@
+*.json
+!verification-summary.json
+*.stderr
+*.log
+*-raw.txt
+claude*.txt

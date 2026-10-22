@@ -142,3 +142,16 @@ parameter still provide whole-lock motion. For segment-by-segment response, auth
 corresponding mesh sections or a suitable hierarchy of local deformation targets,
 then map chain outputs to those controls. Verify inherited motion is not doubled,
 continuity at joins and exposed fill before tuning physics timing.
+
+### Separate generation identity from preparation distortion
+
+Record reference image, generated source, cropped component and placed component
+as distinct artifacts with hashes and dimensions. A generated crop is not the
+original reference. Giving a reference to image generation proves input provenance,
+not that eye shape, palette or highlights were preserved. Attribute visible changes
+by comparing each adjacent stage; do not infer a prompt failure from output alone.
+For each placement report scale_x, scale_y and their ratio. If unequal scaling is
+intentional, state the shape objective and inspect it at target scale. An anisotropy
+flag is a mechanical finding requiring review, not proof that every flagged part
+has lost identity. Record source-generation differences and preparation distortion
+separately; fixing placement alone cannot restore missing source artwork detail.

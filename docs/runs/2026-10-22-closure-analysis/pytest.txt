@@ -1,0 +1,17 @@
+Live2D shell ready. No model services started.
+........................................................................ [ 24%]
+........................................................................ [ 48%]
+........................................................................ [ 72%]
+........................................................................ [ 96%]
+..........                                                               [100%]
+=============================== warnings summary ===============================
+tests/test_repair.py:5
+  /home/kurage/Projects/live2d/tests/test_repair.py:5: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient
+
+.venv/lib/python3.12/site-packages/starlette/testclient.py:53
+  /home/kurage/Projects/live2d/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+298 passed, 2 warnings in 18.99s
