@@ -47,11 +47,13 @@ def plan_revision(config, store, request, source=None, reference=None, plan_file
 
 
 def export_revision(store, destination, revision=None):
+    from . import performance
+
     rev = store.get(revision)
     if rev.status not in {"built", "accepted"}:
         raise ValueError("Revision is not built")
     directory = store.revision_dir(rev.id)
-    report = validate_bundle(directory / "rig/bundle")
+    validate_bundle(directory / "rig/bundle")
     if destination.exists():
         raise ValueError("Destination must not exist")
     destination = destination.resolve()
@@ -61,7 +63,15 @@ def export_revision(store, destination, revision=None):
         for path, sha in stage.artifacts.items():
             if digest(directory / path) != sha:
                 raise ValueError(f"Artifact was modified: {path}")
+    library = performance.load_library(store, rev.id)
+    if library["id"]:
+        _, parameters = performance.parameter_map(store, rev.id)
+        performance.validate_library(performance.contents(library), parameters)
     shutil.copytree(directory / "rig/bundle", destination / "model")
+    performance.attach_bundle(store, rev.id, destination / "model", snapshot=library["id"])
+    report = validate_bundle(destination / "model")
+    report["performance"] = {"snapshot": library["id"], "version": library["version"]}
+    write_json(destination / "performance.json", library)
     shutil.copytree(directory / "materials", destination / "sources/layers")
     for filename in ("source.psd", "source.psd2live"):
         shutil.copyfile(directory / "rig" / filename, destination / "sources" / filename)
@@ -71,8 +81,9 @@ def export_revision(store, destination, revision=None):
     if (directory / "repair-evidence").exists():
         shutil.copytree(directory / "repair-evidence", destination / "repair")
         shutil.copyfile(directory / "repair.json", destination / "repair/draft.json")
-    if (directory / "rig-replay.json").exists():
-        shutil.copyfile(directory / "rig-replay.json", destination / "sources/rig-replay.json")
+    for filename in ("rig-replay.json", "material-batch.json"):
+        if (directory / filename).exists():
+            shutil.copyfile(directory / filename, destination / "sources" / filename)
     latest = store.root / "reviews" / rev.id / "latest.json"
     if latest.is_file():
         review = read_json(latest)

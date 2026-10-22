@@ -11,7 +11,7 @@ from typing import Literal
 from . import assets, comfy, vision
 from .process import run
 from .schema import Binding, Part, Plan, Stage, Strict
-from .repair_schema import DraftCreate, DraftUpdate, MaskCheck, RepairDraft, RepairEdit
+from .repair_schema import DraftCreate, DraftUpdate, MaskCheck, RepairDraft, RepairEdit, RepairTarget
 from .store import digest, fingerprint, lock, read_json, write_json
 
 
@@ -55,7 +55,16 @@ def list_drafts(store, revision=None):
     ]
 
 
-def create(config, store, spec: DraftCreate):
+def create(config, store, spec: RepairTarget, *, image: Path | None = None):
+    upload = spec.upload if isinstance(spec, DraftCreate) else None
+    if image is not None and upload:
+        raise ValueError("Specify either a local image or a web upload")
+    image = config.runtime / "web/uploads" / upload if upload else image
+    if spec.mode in {"add", "replace"}:
+        if image is None or image.suffix.lower() not in {".png", ".jpg", ".jpeg"}:
+            raise ValueError("Add/replace requires a PNG or JPEG image")
+    elif image is not None:
+        raise ValueError("Local images are only used by add/replace")
     rev = store.get(spec.revision)
     base = store.revision_dir(rev.id) / "materials"
     if not (base / "parts.json").is_file():
@@ -71,7 +80,7 @@ def create(config, store, spec: DraftCreate):
     root.mkdir(parents=True)
     try:
         copy_materials(base, root / "base")
-        source = config.runtime / "web/uploads" / spec.upload if spec.upload else base / part.image
+        source = image if image is not None else base / part.image
         with Image.open(source) as im:
             if im.width * im.height > 24_000_000:
                 raise ValueError("单个部件图片不能超过 2400 万像素")
@@ -824,6 +833,10 @@ def apply(config, store, identifier, version, until="rig"):
     from .pipeline import Pipeline
 
     draft, root = snapshot(store, identifier, version)
+    if draft.result.get("visual", {}).get("source") == "agent":
+        from .agent_review import verify_review
+
+        verify_review(draft, root)
     preview = draft.result.get("preview", {})
     if preview.get("version") != version or not preview.get("ready"):
         raise ValueError("请先生成并检查当前草稿的预览")
@@ -918,7 +931,7 @@ def apply(config, store, identifier, version, until="rig"):
 def binding_preview(config, store, identifier, version):
     """Build a disposable candidate, then promote exactly these checked artifacts on apply."""
     from . import rig
-    from .repair_rig import implementation_hash, safe_replay
+    from .repair_rig import history_operations, implementation_hash, safe_replay
     from .validation import validate_bundle
 
     draft, root = snapshot(store, identifier, version)
@@ -932,13 +945,7 @@ def binding_preview(config, store, identifier, version):
         raise ValueError("请先修正掩膜或补齐必要素材，再预览绑定")
     material = root / preview["path"] / "materials"
     parent = store.get(draft.base_revision)
-    chain, ancestor = [], parent
-    while ancestor:
-        chain.append(ancestor)
-        if ancestor.source or any(o.kind == "regenerate" for o in ancestor.plan.operations):
-            break
-        ancestor = store.get(ancestor.parent) if ancestor.parent else None
-    old_ops = [o for rev in reversed(chain) for o in rev.plan.operations if o.kind == "rig"]
+    old_ops = history_operations(store, parent)
     operations, stale = safe_replay(store, parent, material, old_ops)
 
     def build(work):

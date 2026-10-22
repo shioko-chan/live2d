@@ -12,7 +12,16 @@ from .process import owned_process
 from .store import write_json, read_json
 from .schema import Operation
 
-ALLOWED = {"parameter_update", "rig_transform", "keyform_set", "physics_put"}
+ALLOWED = {
+    "parameter_create",
+    "parameter_update",
+    "warp_create",
+    "object_edit",
+    "rig_transform",
+    "keyform_set",
+    "physics_put",
+}
+READ_TOOLS = {"object_get", "rig_inspect", "rig_preview", "rig_list_objects"}
 
 
 def blink_operations(layers, objects):
@@ -90,6 +99,10 @@ class RigSession:
             args["expected_history_head_node_id"] = state["historyHeadNodeId"]
             # Do not retry uncertain writes. This process edits a disposable candidate workspace.
             await self.call(operation.tool, args)
+            if operation.tool in {"warp_create", "object_edit"}:
+                # A preceding keyform may have populated the list before creation.
+                # Re-read actual objects rather than predicting server-assigned structure.
+                targets = None
 
     async def objects(self):
         objects = []
@@ -110,6 +123,7 @@ class RigSession:
             "objects": await self.objects(),
             "physics": await self.call("physics_list"),
             "tools": {k: v for k, v in self.tools.items() if k in ALLOWED},
+            "read_tools": {k: v for k, v in self.tools.items() if k in READ_TOOLS},
         }
 
 

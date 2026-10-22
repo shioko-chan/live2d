@@ -211,6 +211,8 @@ def download_models(config):
 def doctor(config):
     """Filesystem only; no network, torch import, CUDA query, or process launch."""
     report = {
+        "execution_mode": config.mode,
+        "local_models_enabled": config.mode == "local",
         "gpu_accessed": False,
         "models_loaded": False,
         "free_disk_gib": round(shutil.disk_usage(config.root).free / 1024**3, 1),

@@ -93,16 +93,24 @@ class RepairDraft(Strict):
     applied_revision: str | None = None
 
 
-class DraftCreate(Strict):
+class RepairTarget(Strict):
     revision: str
     part: str | None = None
     mode: Literal["split", "mask", "replace", "add", "repaint", "bind", "rig"] = "split"
+
+    @model_validator(mode="after")
+    def required_part(self):
+        if self.mode != "add" and not self.part:
+            raise ValueError("请选择要修正的部件")
+        return self
+
+
+class DraftCreate(RepairTarget):
+    # Web upload identifiers remain confined to the web upload directory.
     upload: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}\.(png|jpg|jpeg)$")
 
     @model_validator(mode="after")
-    def required_inputs(self):
-        if self.mode != "add" and not self.part:
-            raise ValueError("请选择要修正的部件")
+    def required_upload(self):
         if self.mode in {"replace", "add"} and not self.upload:
             raise ValueError("请先上传替换或新增的图片")
         return self

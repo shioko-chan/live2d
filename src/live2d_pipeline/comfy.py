@@ -90,6 +90,7 @@ class ComfyClient:
 
 @contextmanager
 def session(config, log, mounts=(), precision="float16", timeout=None):
+    config.require_local_models("ComfyUI 图像生成/编辑")
     if precision not in {"float16", "float32"}:
         raise ValueError("Unsupported inference precision")
     if timeout is not None and (not math.isfinite(timeout) or timeout <= 0):

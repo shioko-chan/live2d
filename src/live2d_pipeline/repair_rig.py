@@ -36,11 +36,64 @@ def part_meshes(part, objects):
     ]
 
 
+def history_operations(store, parent):
+    """Fold the effective rig history, honoring earlier material rebuild exclusions.
+
+    A plan records intent, while rig-replay.json records historical operations
+    omitted from the actual candidate. Once omitted, an operation must not come
+    back just because a later material snapshot happens to be unchanged.
+    """
+    chain, seen = [], set()
+    while parent:
+        if parent.id in seen:
+            raise ValueError("Revision ancestry contains a cycle")
+        seen.add(parent.id)
+        chain.append(parent)
+        if parent.source or any(op.kind == "regenerate" for op in parent.plan.operations):
+            break
+        parent = store.get(parent.parent) if parent.parent else None
+    effective = []
+    for revision in reversed(chain):
+        current = [op for op in revision.plan.operations if op.kind == "rig"]
+        receipt = store.revision_dir(revision.id) / "rig-replay.json"
+        if receipt.exists():
+            record = read_json(receipt)
+            rejected = record.get("needs_review") if isinstance(record, dict) else None
+            if not isinstance(rejected, list):
+                raise ValueError(f"Invalid rig replay receipt for revision {revision.id}")
+            for row in rejected:
+                if not isinstance(row, dict) or not isinstance(row.get("operation"), dict):
+                    raise ValueError(f"Invalid rig replay operation for revision {revision.id}")
+                operation = Operation.model_validate(row["operation"])
+                if operation.kind != "rig":
+                    raise ValueError(f"Invalid rig replay operation for revision {revision.id}")
+                if operation in effective:
+                    # Remove one occurrence per receipt row, retaining the order
+                    # and multiplicity of authored transforms.
+                    effective.remove(operation)
+                elif operation in current:
+                    # Older executors filtered ancestor and current operations
+                    # together. Their receipts may also omit an own-plan operation.
+                    current.remove(operation)
+        # A freshly authored replacement, even with identical JSON, is allowed
+        # after removal of an old occurrence from the inherited history.
+        effective.extend(current)
+    return effective
+
+
 def safe_replay(store, parent, materials, operations):
-    """Retain edits only where every descendant artwork and placement stayed identical."""
+    """Replay intact dependency groups only in unchanged material coordinate frames.
+
+    Creation and structure edits must travel with their consumers. Filtering just
+    by a keyform's target can otherwise replay geometry without its parameter or
+    parent Warp, or leave a physics output with its authored shape removed.
+    """
     original = store.revision_dir(parent.id) / "materials"
     before, after = assets.load_parts(original), assets.load_parts(materials)
     after_parts = {p.id: p for p in after.parts}
+    # New layers have no old ancestry to inspect and may resize a generated
+    # semantic parent frame. Do not guess which old coordinates remain valid.
+    added_parts = set(after_parts) - {part.id for part in before.parts}
     context = store.revision_dir(parent.id) / "rig/rig-context.json"
     objects = read_json(context)["objects"] if context.exists() else []
     by_id = {o["id"]: o for o in objects}
@@ -63,24 +116,90 @@ def safe_replay(store, parent, materials, operations):
                 seen.add(node["id"])
                 affected.setdefault(node["id"], []).append(unchanged)
                 node = by_id.get(node.get("parentId"))
-    safe, stale = [], []
-    for operation in operations:
-        target = operation.arguments.get("target", {}).get("id")
-        lineage, node, seen = [], by_id.get(target), set()
+
+    def lineage(target):
+        result, node, seen = [], by_id.get(target), set()
         while node and node["id"] not in seen:
             seen.add(node["id"])
-            lineage.extend(affected.get(node["id"], [False]))
+            result.append(node["id"])
             node = by_id.get(node.get("parentId"))
-        if (
-            target
-            and lineage
-            and all(lineage)
+        return result
+
+    def unchanged(target):
+        ancestors = lineage(target)
+        return (
+            bool(ancestors)
+            and not added_parts
+            and all(all(affected.get(identifier, [False])) for identifier in ancestors)
             and (before.width, before.height) == (after.width, after.height)
-        ):
+        )
+
+    refs, creators, structural, valid = [], {}, {}, []
+    for index, operation in enumerate(operations):
+        args, tool = operation.arguments, operation.tool
+        objects = {args.get("target", {}).get("id")} - {None}
+        parameters = set(args.get("coordinate", {}))
+        if tool == "parameter_create":
+            creators[("parameter", args.get("parameter_id"))] = index
+        elif tool == "parameter_update":
+            parameters.add(args.get("parameter_id"))
+        elif tool == "warp_create":
+            objects.update(args.get("mesh_ids", []))
+            objects.update({args.get("id"), args.get("parent_id")} - {None})
+            creators[("object", args.get("id"))] = index
+            # Creating a warp also changes each attached mesh's coordinate parent.
+            for identifier in objects:
+                structural.setdefault(identifier, []).append(index)
+        elif tool == "object_edit":
+            for edit in args.get("edits", []):
+                objects.update({edit.get("id"), edit.get("parent_id"), edit.get("before_id")} - {None})
+                if edit.get("action") in {"move", "bind"}:
+                    structural.setdefault(edit.get("id"), []).append(index)
+        elif tool == "physics_put":
+            parameters.update({args.get("input_parameter"), args.get("output_parameter")} - {None})
+        expanded = {ancestor for identifier in objects for ancestor in lineage(identifier)} | objects
+        refs.append(
+            {
+                *(("object", identifier) for identifier in expanded),
+                *(("parameter", identifier) for identifier in parameters if identifier),
+            }
+        )
+        valid.append(
+            all(unchanged(identifier) for identifier in objects)
+            if objects
+            else tool in {"parameter_create", "parameter_update", "physics_put"}
+        )
+
+    # Union dependent operations without changing their original execution order.
+    groups = list(range(len(operations)))
+
+    def group(index):
+        while groups[index] != index:
+            groups[index] = groups[groups[index]]
+            index = groups[index]
+        return index
+
+    for index, references in enumerate(refs):
+        for reference in references:
+            dependencies = []
+            if reference in creators:
+                dependencies.append(creators[reference])
+            if reference[0] == "object":
+                dependencies.extend(structural.get(reference[1], []))
+            for dependency in dependencies:
+                groups[group(index)] = group(dependency)
+    rejected = {group(index) for index, is_valid in enumerate(valid) if not is_valid}
+    safe, stale = [], []
+    for index, operation in enumerate(operations):
+        if group(index) not in rejected:
             safe.append(operation)
         else:
             stale.append(
-                {"operation": operation.model_dump(), "reason": "素材、绑定或目标前提已变化，需要重新预览"}
+                {
+                    "operation": operation.model_dump(),
+                    "reason": "素材、绑定或依赖操作的前提已变化，整组需要重新预览",
+                    "dependency_group": [i for i in range(len(operations)) if group(i) == group(index)],
+                }
             )
     return safe, stale
 

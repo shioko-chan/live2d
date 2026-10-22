@@ -42,8 +42,12 @@ fun main(args: Array<String>) = runBlocking {
             vm.setBodyStrength(config.getValue("body_strength").jsonPrimitive.float)
             vm.analyze()
             ready { vm.state.value.analysis != null && !vm.state.value.isAnalyzing }
+            vm.setAnimationEnabled(false)
             vm.saveProjectNow(project, "pipeline")
         }
+        // Headless callers supply explicit poses. Continuous UI animation can
+        // starve the save-state compare-and-set while image logs are encoded.
+        vm.setAnimationEnabled(false)
         val token = System.getenv("L2D_MCP_TOKEN") ?: error("L2D_MCP_TOKEN missing")
         service = AgentMcpService(workspace, AgentMcpConfig(port = 0, token = token))
         val info = service.start()

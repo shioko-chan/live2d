@@ -50,7 +50,7 @@ def test_refinement_rejects_invalid_selections_and_motion():
         refinement.validate_edits(manifest, [edit()])
 
 
-def test_split_preserves_neutral_and_saves_provenance(tmp_path, monkeypatch):
+def test_split_preserves_neutral_and_saves_provenance(tmp_path, monkeypatch, local_config):
     source = Image.new("RGBA", (20, 30), "navy")
     source.save(tmp_path / "shirt.png")
     assets.save_parts(tmp_path, Parts(width=40, height=40, parts=[part()]))
@@ -82,7 +82,7 @@ def test_split_preserves_neutral_and_saves_provenance(tmp_path, monkeypatch):
         "ask",
         lambda *a: vision.ExtractionCheck(candidate="candidate-0", confidence=0.95, reason="isolated bow"),
     )
-    refinement.apply(Config(), tmp_path, [edit()])
+    refinement.apply(local_config, tmp_path, [edit()])
     manifest = assets.load_parts(tmp_path)
     added = manifest.parts[-1]
     assert added.bounds == (6, 7, 8, 16)

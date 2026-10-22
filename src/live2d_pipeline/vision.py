@@ -80,6 +80,7 @@ def image_message(path):
 
 @contextmanager
 def server(config, log):
+    config.require_local_models("本地视觉模型")
     cfg = config["vision"]
     paths = [config.resolve(cfg[key]) for key in ("model", "projector")]
     for path in paths:

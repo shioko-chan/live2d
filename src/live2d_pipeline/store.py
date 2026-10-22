@@ -91,6 +91,9 @@ class Store:
                 if key == "source":
                     rev.source_hash = digest(dest)
         self.save(rev)
+        from .performance import inherit
+
+        inherit(self, rev.id)
         if checkout:
             state["head"] = rev.id
             write_json(self.root / "project.json", state)

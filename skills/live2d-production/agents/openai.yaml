@@ -1,0 +1,4 @@
+interface:
+  display_name: "Live2D 制作"
+  short_description: "制作与精修 Live2D 的组件、参数、表情和动作，按实际画面逐阶段检查"
+  default_prompt: "使用 $live2d-production 按我的需求或参考模型制作 Live2D，规划精细组件、参数、表情与动作并检查实际效果，默认使用 agent 自带的生图和修图功能，除非我明确指定其他工具或要求全本地运行。"

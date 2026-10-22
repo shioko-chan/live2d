@@ -120,6 +120,7 @@ def compact_context(context):
 
 
 def make_plan(config, request, context, log):
+    config.require_local_models("本地需求规划")
     cfg = config["planner"]
     path = config.resolve(cfg["model"])
     if not path.is_file():

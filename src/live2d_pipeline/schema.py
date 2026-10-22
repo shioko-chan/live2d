@@ -62,7 +62,18 @@ class Operation(Strict):
     bounds: tuple[int, int, int, int] | None = None
     semantic: str | None = None
     # Rig tool inputs are checked against the pinned MCP server's actual schema.
-    tool: Literal["parameter_update", "rig_transform", "keyform_set", "physics_put"] | None = None
+    tool: (
+        Literal[
+            "parameter_create",
+            "parameter_update",
+            "warp_create",
+            "object_edit",
+            "rig_transform",
+            "keyform_set",
+            "physics_put",
+        ]
+        | None
+    ) = None
     arguments: dict = Field(default_factory=dict)
 
     @model_validator(mode="after")

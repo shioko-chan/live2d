@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 import shutil
 import tempfile
+import uuid
 
 from PIL import Image
 import jsonschema
@@ -14,6 +15,7 @@ import jsonschema
 from .process import run
 from .review import built_directory
 from .rig import open_rig
+from .store import write_json
 
 FPS = 24
 DURATION = 8
@@ -46,14 +48,14 @@ def motion(params, t):
     return values
 
 
-def encode(frames, output, log):
+def encode(frames, output, log, fps=FPS):
     run(
         [
             "ffmpeg",
             "-nostdin",
             "-y",
             "-framerate",
-            str(FPS),
+            str(fps),
             "-i",
             str(frames / "%04d.png"),
             "-an",
@@ -73,12 +75,24 @@ def encode(frames, output, log):
     )
 
 
-def generate(config, store, revision=None, progress=lambda message: None):
+def generate(
+    config, store, revision=None, progress=lambda message: None, *,
+    sampler=None, duration=DURATION, fps=FPS, physics=None, long_edge=512, provenance=None,
+):
     rev, directory = built_directory(store, revision)
+    if not math.isfinite(duration) or not 0 < duration <= 120 or not 1 <= fps <= 60:
+        raise ValueError("Video duration/fps outside supported range")
+    if not isinstance(fps, int) or not 64 <= long_edge <= 2048:
+        raise ValueError("Video fps must be an integer and long_edge must be 64..2048")
     if not shutil.which("ffmpeg"):
         raise ValueError("找不到 FFmpeg，请在 nix develop 环境中启动网页。")
     target = store.root / "previews" / rev.id
+    authored = sampler is not None or physics is not None
+    if authored:
+        target = target / "performances" / uuid.uuid4().hex
     target.mkdir(parents=True, exist_ok=True)
+    frame_count = math.ceil(fps * duration)
+    trace = []
     # A disposable copy protects the saved workspace and its artifact hashes.
     with tempfile.TemporaryDirectory(prefix="video-", dir=target) as temporary:
         work = Path(temporary)
@@ -93,9 +107,23 @@ def generate(config, store, revision=None, progress=lambda message: None):
             ) as (rig, _):
                 state = await rig.call("project_get_state")
                 params = {p["id"]: p for p in (await rig.call("project_list_parameters"))["parameters"]}
-                for index in range(FPS * DURATION):
+
+                def sample(t):
+                    values = sampler(t) if sampler is not None else motion(params, t)
+                    if physics is not None:
+                        values = physics(values, t)
+                    if set(values) != set(params):
+                        raise ValueError("Playback sampler must supply all actual model parameters")
+                    for key, value in values.items():
+                        if not math.isfinite(value) or not params[key]["min"] <= value <= params[key]["max"]:
+                            raise ValueError(f"Playback parameter outside model range: {key}")
+                    if authored:
+                        trace.append({"time": t, "parameters": values})
+                    return values
+
+                for index in range(frame_count):
                     args = {
-                        "parameters": motion(params, index / FPS),
+                        "parameters": sample(index / fps),
                         "viewport": {
                             "mode": "canvas_rect",
                             "left": 0,
@@ -104,7 +132,7 @@ def generate(config, store, revision=None, progress=lambda message: None):
                             "height": state["canvasHeight"],
                         },
                         "background": "transparent",
-                        "target_long_edge": 512,
+                        "target_long_edge": long_edge,
                     }
                     jsonschema.validate(args, rig.tools["view_render_model"])
                     result = await rig.session.call_tool("view_render_model", args)
@@ -117,12 +145,23 @@ def generate(config, store, revision=None, progress=lambda message: None):
                         Image.alpha_composite(background, image).convert("RGB").save(
                             frames / f"{index:04d}.png"
                         )
-                    if index % FPS == 0 or index == FPS * DURATION - 1:
-                        progress(f"渲染预览视频 {index + 1}/{FPS * DURATION} 帧")
+                    if index % fps == 0 or index == frame_count - 1:
+                        progress(f"渲染预览视频 {index + 1}/{frame_count} 帧")
+                if authored:
+                    sample(duration)  # Include the endpoint in the motion/loop evidence.
 
         progress("启动模型预览渲染器")
         asyncio.run(render())
         progress("编码 MP4 视频")
-        encode(frames, work / "preview.mp4", target / "encode.log")
+        encode(frames, work / "preview.mp4", target / "encode.log", fps=fps)
         (work / "preview.mp4").replace(target / "preview.mp4")
+    if authored:
+        write_json(target / "parameters.json", {"frames": trace})
+        write_json(target / "playback.json", {
+            "revision": rev.id, "duration": duration, "fps": fps, "frames": frame_count,
+            "renderer": "PSD2Live CPU", "runtime_verified": False,
+            "sampler": "authored_motion_expression" if sampler else "diagnostic",
+            "physics": physics.report() if physics is not None else {"status": "not_evaluated"},
+            "provenance": provenance,
+        })
     return target / "preview.mp4"

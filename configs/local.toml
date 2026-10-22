@@ -27,6 +27,9 @@ mesh_spacing = 48
 head_strength = 0.5
 body_strength = 0.5
 [execution]
+# Agent mode prefers the agent's built-in image tools unless the user specifies others.
+# Local model backends below require an explicit full-local job configuration.
+mode = "agent"
 inference = "container"
 [vision]
 model = "models/vision/Qwen3.5-9B-Q4_K_M.gguf"

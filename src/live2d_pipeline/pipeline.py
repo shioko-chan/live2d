@@ -2,7 +2,6 @@ import asyncio
 import shutil
 from PIL import Image
 from . import assets, comfy, decompose, rig, segment, refinement
-from .planner import make_plan
 from .schema import Part, Stage
 from .store import digest, fingerprint, read_json, write_json
 from .validation import validate_bundle
@@ -106,6 +105,14 @@ class Pipeline:
             raise ValueError("Art edits run to materials; inherited revisions have no image stage")
         if inherit and parent.status not in {"built", "accepted"} and not revision.prepared_materials:
             raise ValueError("Build the parent revision first")
+        # Reject model-dependent work before changing status or replacing stage artifacts.
+        model_work = any(op.kind in {"repaint", "add", "regenerate"} for op in operations)
+        model_work |= any(edit.action == "split" for edit in revision.plan.refinements)
+        if not revision.prepared_materials and not inherit:
+            model_work |= not revision.source
+            model_work |= bool(revision.source and not revision.source.endswith(".psd") and until != "image")
+        if model_work:
+            self.config.require_local_models("立绘生成、自动拆层或模型修图")
         revision.status = "running"
         self.store.save(revision)
         try:
@@ -211,7 +218,6 @@ class Pipeline:
                             target, source_image, split_dir / "raw" / source_image.stem / "src_img.png"
                         )
                         assets.prepare_generated_face(target, revision.plan.prompt)
-                    self.repair(target)
                     self.modify(target, [o for o in operations if o.kind != "regenerate"])
 
             materials = self.stage(
@@ -245,21 +251,17 @@ class Pipeline:
             parent_workspace = None
             if inherit:
                 if changed_art:
-                    chain = []
-                    ancestor = parent
-                    while ancestor:
-                        chain.append(ancestor)
-                        if ancestor.source or any(o.kind == "regenerate" for o in ancestor.plan.operations):
-                            break
-                        ancestor = self.store.get(ancestor.parent) if ancestor.parent else None
-                    rig_ops = [
-                        o for rev in reversed(chain) for o in rev.plan.operations if o.kind == "rig"
-                    ] + rig_ops
-                    if revision.prepared_materials:
-                        from .repair_rig import safe_replay
+                    from .repair_rig import history_operations, safe_replay
 
-                        rig_ops, stale = safe_replay(self.store, parent, materials, rig_ops)
-                        write_json(directory / "rig-replay.json", {"needs_review": stale})
+                    historical_ops = history_operations(self.store, parent)
+                    replay, stale = (
+                        safe_replay(self.store, parent, materials, historical_ops)
+                        if historical_ops else ([], [])
+                    )
+                    # Current operations target the newly built rig. Only historical
+                    # geometry is checked against the previous material coordinates.
+                    rig_ops = replay + rig_ops
+                    write_json(directory / "rig-replay.json", {"needs_review": stale})
                 else:
                     parent_workspace = self.store.revision_dir(parent.id) / "rig/source.psd2live"
 
@@ -285,28 +287,6 @@ class Pipeline:
             self.store.save(revision)
             raise
         return directory
-
-    def repair(self, directory):
-        report = assets.quality(directory)
-        if not report["missing_parts"]:
-            return
-        plan = make_plan(
-            self.config,
-            "补齐这些独立的必要图层，不改变现有图层："
-            + ", ".join(report["missing_parts"])
-            + "。仅使用 add 操作；根据部件清单中的位置确定像素框，无法定位时返回 clarification。",
-            {"parts": read_json(directory / "parts.json")},
-            directory / "repair-planner.log",
-        )
-        write_json(directory / "repair-plan.json", plan.model_dump())
-        if plan.clarification or plan.unsupported or any(o.kind != "add" for o in plan.operations):
-            raise RuntimeError(
-                f"Cannot safely repair missing parts: {plan.clarification or plan.unsupported}"
-            )
-        self.modify(directory, plan.operations)
-        report = assets.quality(directory)
-        if report["missing_parts"]:
-            raise RuntimeError(f"Repair did not supply required parts: {report['missing_parts']}")
 
     def modify(self, directory, operations):
         manifest = assets.load_parts(directory)

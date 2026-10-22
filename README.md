@@ -2,13 +2,66 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A local web workbench and command-line pipeline: Chinese-language requirements → local planning → image generation → layer decomposition and inpainting → rigging → a `.moc3` model package. Supports natural-language revisions, revision branches, resuming interrupted work, and export.
+A Live2D production skill, local web workbench, and command-line toolkit: requirements → image generation → layer decomposition and inpainting → rigging → inspection and repair → a `.moc3` model package. Supports natural-language revisions, revision branches, resuming interrupted work, and export.
 
 Real planning, image generation, image editing, layer decomposition, mouth-shape extraction, headless rigging, and model-package export have been completed on the local machine. Deletion and parameter changes requested in Chinese, rebuilding after recoloring, and resuming interrupted work have also been verified. Closed-mouth, open-mouth, blinking, and slight head-turn samples of the silver-haired candidate have been inspected; automated visual quality still needs review, and compatibility with the official Core and target applications has not been confirmed. See the [actual run log](docs/runs/2026-09-12.md).
 
+## Codex Production Skill
+
+The entry point is [`skills/live2d-production/SKILL.md`](skills/live2d-production/SKILL.md). Codex plans production, inspects actual images, and chooses repairs; Python tools execute changes, manage revisions, and validate results. The skill is versioned with this repository. Link its directory into your local Codex skills directory to invoke `$live2d-production`. It requires this repository and a prepared runtime; model weights and character assets are not included.
+
+For example: **“Use $live2d-production to turn this illustration into a Live2D model with blinking, mouth opening, and small head turns. Inspect intermediate results, repair visible problems, and deliver the model.”**
+
+Tool interfaces (run inside `nix develop`):
+
+```sh
+# Inspect saved images, parts, parameters, materials, and artifact hashes without inference
+uv run --no-sync l2d inspect projects/my-character
+uv run --no-sync l2d schema plan
+uv run --no-sync l2d schema repair-edit
+# Create an added-layer draft from a local image without a web upload
+uv run --no-sync l2d repair create projects/my-character --mode add --source /absolute/mouth.png
+uv run --no-sync l2d repair --help
+# pose.json: {"parameters":{"ParamAngleX":15},"long_edge":768}
+uv run --no-sync l2d render projects/my-character /absolute/pose.json
+uv run --no-sync l2d preview-video projects/my-character
+```
+
+`repair` supports create/show/list/update/run/evidence/record-review/apply/discard. It reuses the web workbench's drafts, version locks, and pixel/geometry checks, and copies local images into drafts. `evidence` prepares hashed inspection images; after viewing them, Codex records an attributed judgment with `record-review`. CLI application requires a current visual review. Stale or changed evidence cannot be applied, and agent review does not mark human acceptance. See the [tool reference](skills/live2d-production/references/tools.md) for interfaces and coordinates.
+
+**Agent mode is the default.** Codex handles planning, image inspection, and candidate comparison. **Use the agent's built-in image tools for generation, editing, and hidden-surface fill**, unless the user explicitly selects another tool or service; do not assume a particular underlying model. Import actual results through `--plan-file`, layered PSDs, or repair add/replace. **Use local AI models only when the user explicitly requests a fully local run.** Report unavailable tools or failures without automatically switching providers or falling back to local models.
+
+The shared default is `[execution] mode = "agent"` in `configs/local.toml`; older configurations without a mode also default to agent. For a fully local task, copy the configuration into the task directory, set `mode = "local"`, and pass `--config /absolute/full-local.toml`. Do not change the shared default for one task. `inference = "container"/"native"` selects how local backends run; it does not enable local models. `doctor` reports the mode.
+
+This restriction covers the local planner/VLM, Animagine, Qwen Image Edit, See-through, SAM2, and LaMa. PSD processing, pixel checks, transparent-island extraction, rigging, rendering, and export still use local programs. Automatic PNG decomposition currently has only a See-through implementation, with no hosted adapter. In agent mode, use an existing layered PSD or assemble and inspect layers produced by the selected image tool when feasible. Otherwise report the missing capability instead of silently loading a local model.
+
+The skill inspects and repairs in stages. Missing layers preserve materials and return `paused` until explicitly supplied. Structural checks, visual review, official runtime validation, and user acceptance are recorded separately; exposing interfaces alone does not establish improved production quality.
+
+Detailed production references cover [reference goals and task planning](skills/live2d-production/references/detailed-production.md), [components and artwork fidelity](skills/live2d-production/references/components.md), [parameters and deformation](skills/live2d-production/references/parameters.md), and [expressions, actions, and physics](skills/live2d-production/references/performance.md). The skill selects relevant extensions and maps goals to actual components, controls, and acceptance evidence.
+
+Available authoring tools:
+
+- Plans support `parameter_create`, `warp_create`, and `object_edit` to create controls, hierarchies, and keyforms in order. `rig-inspect` reads complete objects and paged geometry.
+- `materials-batch` captures multiple native-size PNGs, checks placement, draw order, semantics, and binding, and applies them together after preview and review. Failure leaves the project head unchanged.
+- `performance` manages immutable expression, motion, and physics snapshots. New model revisions pin the current configuration; normal `export` registers and packages it. Playback supports timelines, expression composition, looping, and actual MP4 previews.
+- `physics compose/put` authors complete multi-particle physics3 chains. `performance preview --physics` runs continuous CPU simulation; `verify-playback` checks parameter traces frame by frame through a supplied official Core library.
+
+```sh
+uv run --no-sync l2d materials-batch schema
+uv run --no-sync l2d rig-inspect projects/my-character --object OBJECT_ID --kind warp --detail object
+uv run --no-sync l2d performance schema playback
+uv run --no-sync l2d physics schema authoring
+uv run --no-sync l2d performance preview projects/my-character /absolute/playback.json --physics
+uv run --no-sync l2d verify-playback /absolute/delivery/model /absolute/parameters.json --core /absolute/libLive2DCubismCore.so
+```
+
+See the [capability table](skills/live2d-production/references/tools.md#authoring-capabilities) for arguments and version workflows. Motions currently support parameter curves, without Model/PartOpacity curves or audio/event dispatch. CPU physics uses an independent solver and does not promise official SDK numerical parity. Core checks cover sequential parameter updates and finite geometry; target-application visuals and interaction still require actual testing.
+
+See the [2026-10-15 production skill validation](docs/runs/2026-10-15-production-skill.md) and [authoring tools and combined playback validation](docs/runs/2026-10-15-authoring-tools.md).
+
 ## Web Interface
 
-Once the local environment and model weights are ready, run these commands in the project directory:
+Once the local environment is ready, run these commands in the project directory. For fully local tasks requiring autonomous web planning and inference, also pass `--config /absolute/full-local.toml`:
 
 ```sh
 cd /home/kurage/Projects/live2d
@@ -49,9 +102,9 @@ uv run l2d plan projects/demo '测试角色' --plan-file configs/example-plan.js
 uv run l2d status projects/demo
 ```
 
-`plan` **starts the language model when `--plan-file` is omitted**. `run`, `resume`, and `revise` may also use the GPU; make sure enough GPU resources are available. Importing code, entering the Nix shell, running `doctor`, `init`, `history`, or `checkout`, and packaging existing artifacts do not start models.
+`plan` without `--plan-file` requires fully local mode; agent mode refuses to start the local planner. In fully local mode, `run`, `resume`, and `revise` may use the GPU. Importing code, entering the Nix shell, running `doctor`, `init`, `history`, or `checkout`, and packaging existing artifacts do not start models.
 
-## Environment Setup
+## Fully Local Inference Setup
 
 ```sh
 uv run l2d prepare-sources
@@ -69,30 +122,32 @@ On the 2080 Ti, image generation and layer decomposition use FP16; Qwen editing 
 
 The 4B planner passed seven real Chinese-language scenario checks, with peak process GPU memory usage of approximately 4.84 GiB. New plans took about 3 seconds; revisions with full project context took about 7–8.5 seconds, including loading and shutdown. Material ID mix-ups and prompt-format issues have been fixed. See the [small-model evaluation log](docs/runs/2026-09-12-small-planner.md).
 
-## Usage (These Commands Run Models)
+## Fully Local Usage
+
+These examples are for explicitly requested fully local tasks. Copy the configuration, set `[execution] mode = "local"`, and pass that task configuration. See the skill section above for the default agent workflow.
 
 ```sh
 # Create a plan from natural language; this runs only the planning model
-uv run l2d plan projects/demo '银发蓝眼，白色外套，正面半身二次元角色'
+uv run l2d plan projects/demo '银发蓝眼，白色外套，正面半身二次元角色' --config /absolute/full-local.toml
 # Generate an image first and pause to inspect the composition
-uv run l2d run projects/demo --until image
+uv run l2d run projects/demo --until image --config /absolute/full-local.toml
 # Inspect the illustration and continue when satisfied; use --until materials to inspect layers before rigging
-uv run l2d resume projects/demo
+uv run l2d resume projects/demo --config /absolute/full-local.toml
 
 # You can also start from existing materials: PNGs are decomposed, while PSDs proceed directly to material normalization
 uv run l2d init projects/imported
-uv run l2d plan projects/imported '保留角色，生成基础动作' --source /absolute/character.psd
-uv run l2d run projects/imported
+uv run l2d plan projects/imported '保留角色，生成基础动作' --source /absolute/character.psd --config /absolute/full-local.toml
+uv run l2d run projects/imported --config /absolute/full-local.toml
 
 # Create a revision branch; by default, this only plans and does not edit images
-uv run l2d revise projects/demo '把前发改成浅蓝色'
-uv run l2d run projects/demo
+uv run l2d revise projects/demo '把前发改成浅蓝色' --config /absolute/full-local.toml
+uv run l2d run projects/demo --config /absolute/full-local.toml
 # Or plan and execute in one command
-uv run l2d revise projects/demo '减小头发摆动幅度' --execute
+uv run l2d revise projects/demo '减小头发摆动幅度' --execute --config /absolute/full-local.toml
 
 uv run l2d history projects/demo
 uv run l2d checkout projects/demo REVISION_ID
-uv run l2d resume projects/demo
+uv run l2d resume projects/demo --config /absolute/full-local.toml
 # Accept after viewing the preview; accepted revisions cannot be rerun and overwritten
 uv run l2d accept projects/demo REVISION_ID
 uv run l2d export projects/demo /absolute/delivery
@@ -107,7 +162,7 @@ Use `--config /absolute/config.toml` to specify the runtime configuration. `plan
 - Recoloring preserves alpha and dimensions. Inpainting uses the original alpha as its bounds and preserves the original transparency; outline changes require regeneration/re-rigging. New parts use explicit green-screen generation and background removal, which suits non-green materials. Green parts or unclean edges require manual correction.
 - New mouth shapes use SAM 2.1 Tiny box/point prompts to extract the central mouth region, then place it at the specified location while preserving its aspect ratio. If no reliable standalone mouth shape is obtained, processing stops and retains the original image, candidate masks, and segmentation report, avoiding shrinking the lower half of the face into a mouth patch. Other parts have their green background removed before resizing.
 - Material changes trigger re-rigging, and **preserving manually refined meshes is not currently guaranteed**. Corrections are replayed only when their part, layer-order, rigging, and parent-geometry prerequisites still match; the rest are marked for reinspection. Changes limited to pose rigging copy the parent revision's entire workspace and edit it through MCP.
-- If required mouth or eye layers are missing, the pipeline makes one bounded attempt to plan and inpaint them. Failure preserves logs and intermediate results; there are no infinite retries. Precise deformations or aesthetic acceptance that are only theoretically possible are not presented as reliable automated capabilities.
+- If required mouth or eye layers are missing, the pipeline preserves materials and pauses. Supply them explicitly through the web interface or `l2d repair`; `run` does not start hidden planning/inpainting tasks. The skill schedules bounded repairs based on inspected images.
 - For white-background PNG decomposition, the pipeline compares against the aligned original image saved by the upstream tool, filters hallucinated parts lying almost entirely outside the character outline, records `source-support.json`, and retains the original PSD. This check cannot detect all semantic errors and is not applied to non-white backgrounds or existing PSDs.
 - Each revision saves copies of source inputs, its plan, dependency hashes, and stage artifacts. Resuming validates artifacts and fingerprints. Accepted revisions remain unchanged, and failed modifications do not alter them.
 - A single-task lock prevents this pipeline from running multiple large-model tasks at once; each workspace also has an exclusive lock. This tool does not manage external GPU usage.
@@ -139,14 +194,14 @@ In the web interface, first choose an operation: “Generate or modify appearanc
 
 ```sh
 # Generate a decomposition/rigging draft → rule validation → visual review; apply in the web interface
-uv run l2d refine projects/my-character '把领结独立拆出来，根部固定，尾部小幅摆动'
+uv run l2d refine projects/my-character '把领结独立拆出来，根部固定，尾部小幅摆动' --config /absolute/full-local.toml
 # Inspect only, without modifying the project; optionally include natural-language feedback
-uv run l2d review projects/my-character '检查转头和闭眼时有没有穿帮'
+uv run l2d review projects/my-character '检查转头和闭眼时有没有穿帮' --config /absolute/full-local.toml
 ```
 
 The vision model is **Qwen3.5-9B Q4_K_M + F16 vision projector**, with a separate role from the 4B text planner. It starts and releases its resources as needed. Weights reside in the main Hugging Face cache, with symlinks under the project's `models/vision/`. `l2d download-models` downloads the pinned versions; configure a local llama-server in the `[vision]` section of `configs/local.toml`. Localization within a single image uses normalized 0–1000 coordinates, which the program converts to source-layer pixels, avoiding confusion between coordinates for the full character and an individual layer.
 
-The executor reuses SAM2 to extract source pixels, uses the VLM to verify that the extracted region is the intended part, then uses the existing anime LaMa to inpaint the occluded region underneath. Extracted parts retain provenance records and their original semantic rigging; the default composite must match pixel for pixel. New rigging uses PSD2Live's separate child deformers, swing keyframes with fixed roots, and two-node physics groups, and can add visibility switches to existing parts. Clothing, hair, earrings, headwear, and other accessories are supported. Arbitrary reparenting across coordinate systems, general multi-level physics chains, and automatic outfit-change design are not supported.
+The fully local extraction executor reuses SAM2 to extract source pixels, uses the VLM to verify that the extracted region is the intended part, then uses the existing anime LaMa to inpaint the occluded region underneath. Extracted parts retain provenance records and their original semantic rigging; the default composite must match pixel for pixel. New rigging uses PSD2Live's separate child deformers, swing keyframes with fixed roots, and two-node physics groups, and can add visibility switches to existing parts. Clothing, hair, earrings, headwear, and other accessories are supported. Use the authoring tools above for further hierarchy editing and multi-particle physics chains. Inspect appearance after edits across parent coordinate systems; automatic outfit-change design is not implemented.
 
 Previews cover the parameter endpoints and some combinations for existing head turns, head pitch, gaze, eyebrows, mouth, hair, and new parts. The program checks file integrity, materials, the neutral composite, and triangle flipping/collapse in new deformations. The VLM checks semantics and outlines in images, without substituting confidence scores for pixel evidence. Correction suggestions are limited to operations permitted by the current type. Once a single part has been located unambiguously, a bounded set of candidates can be reviewed and compared. If localization is ambiguous, the user selects the part on the image; if no judgment can be made, the evidence is retained. The original revision remains unchanged.
 

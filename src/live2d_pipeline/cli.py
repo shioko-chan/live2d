@@ -1,4 +1,3 @@
-import json
 from enum import Enum
 from typing import Annotated
 from pathlib import Path
@@ -9,15 +8,13 @@ from .services import plan_revision, export_revision
 from .store import Store, lock, read_json
 from .validation import validate_bundle
 from . import setup
+from .cli_io import json_errors, show
+from .tool_cli import register
 
 app = typer.Typer(
     no_args_is_help=True,
-    help="Local AIGC → Live2D. Models start only for explicit generation, refinement or review.",
+    help="Agent-driven Live2D tools. Local models require execution.mode=local for full-local jobs.",
 )
-
-
-def show(value):
-    typer.echo(json.dumps(value, ensure_ascii=False, indent=2, default=str))
 
 
 def cfg(path):
@@ -32,6 +29,7 @@ def init(project: Path):
 
 
 @app.command()
+@json_errors
 def plan(
     project: Path,
     request: str,
@@ -40,7 +38,7 @@ def plan(
     plan_file: Path | None = None,
     config: Path | None = None,
 ):
-    """Plan with local llama-server, or import a validated JSON plan without inference."""
+    """Import a JSON plan; local text planning requires explicit full-local mode."""
     c, store = cfg(config), Store(project)
     with lock(c.runtime / "task.lock"), lock(store.root / ".lock"):
         rev = plan_revision(c, store, request, source, reference, plan_file)
@@ -54,14 +52,16 @@ class StopAfter(str, Enum):
 
 
 @app.command()
+@json_errors
 def run(
     project: Path, revision: str | None = None, config: Path | None = None, until: StopAfter = StopAfter.rig
 ):
     """Explicitly execute a plan. This DOES load models/use GPU where needed."""
     c, store = cfg(config), Store(project)
     with lock(c.runtime / "task.lock"), lock(store.root / ".lock"):
-        result = Pipeline(c, store).run(store.get(revision), until=until.value)
-        show({"output": result, "runtime_verified": False})
+        rev = store.get(revision)
+        result = Pipeline(c, store).run(rev, until=until.value)
+        show({"output": result, "revision": rev.id, "status": rev.status, "runtime_verified": False})
 
 
 @app.command()
@@ -79,13 +79,14 @@ def revise(
 
 
 @app.command()
+@json_errors
 def review(
     project: Path,
     request: Annotated[str, typer.Argument()] = "检查模型的细节和动作",
     revision: str | None = None,
     config: Path | None = None,
 ):
-    """Run deterministic checks and local VLM review. Acceptance remains manual."""
+    """Run local VLM review in full-local mode. For agent inspection use inspect."""
     from .review import inspect
 
     c, store = cfg(config), Store(project)
@@ -94,13 +95,14 @@ def review(
 
 
 @app.command()
+@json_errors
 def refine(
     project: Path,
     request: Annotated[str, typer.Argument()] = "完善头发、服装和饰品的独立部件与小幅摆动",
     revision: str | None = None,
     config: Path | None = None,
 ):
-    """Refine a completed model, review, repair at most once, then await the user."""
+    """Create/inspect drafts with the local VLM in full-local mode; does not apply."""
     from .review import refine as refine_model
 
     c, store = cfg(config), Store(project)
@@ -219,6 +221,9 @@ def verify_runtime(bundle: Path, core: Path = typer.Option(..., "--core"), confi
             env={"CUDA_VISIBLE_DEVICES": ""},
         )
     typer.echo("Core loaded and updated the model. Visual/physics compatibility still needs inspection.")
+
+
+register(app)
 
 
 if __name__ == "__main__":

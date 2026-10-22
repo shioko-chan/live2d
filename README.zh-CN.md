@@ -2,13 +2,67 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-本地网页工作台与命令行流水线：中文需求 → 本地规划 → 生图 → 拆分补画 → 绑定 → `.moc3` 模型包。支持自然语言修改、分支版本、断点恢复和导出。
+Live2D 制作 skill、本地网页工作台与命令行工具：需求 → 生图 → 拆分补画 → 绑定 → 检查与修正 → `.moc3` 模型包。支持自然语言修改、分支版本、断点恢复和导出。
 
 已在本机完成真实规划、生图、修图、拆层、口型提取、无窗口绑定和模型包导出，并验证过中文删除/参数修改、改色重建及断点恢复。银发候选的闭嘴、张嘴、眨眼和小幅转头样例已检查；自动视觉质量仍需复核，官方 Core/目标应用兼容性尚未确认。详见 [真实运行记录](docs/runs/2026-09-12.md)。
 
+## Codex 制作 skill
+
+入口为 [`skills/live2d-production/SKILL.md`](skills/live2d-production/SKILL.md)。Codex 负责制作计划、查看实际图片和选择修复步骤，Python 工具负责执行、版本管理与校验。Skill 的源文件随仓库管理；将该目录链接到本机 Codex 的 skills 目录后，可用 `$live2d-production` 调用。它依赖本仓库与已准备的运行环境，权重和角色资产不包含在 skill 中。
+
+例如：**“使用 $live2d-production，把这张立绘制作成可以眨眼、张嘴和小幅转头的 Live2D，检查中间结果并修复可见问题后交付。”**
+
+新增的工具接口（在 `nix develop` 中执行）：
+
+```sh
+# 离线检查：返回图片绝对路径、部件、参数、素材与哈希检查
+uv run --no-sync l2d inspect projects/my-character
+uv run --no-sync l2d schema plan
+uv run --no-sync l2d schema repair-edit
+# 使用本地图片创建补层草稿，不需要网页上传
+uv run --no-sync l2d repair create projects/my-character --mode add --source /absolute/mouth.png
+uv run --no-sync l2d repair --help
+# pose.json 形如 {"parameters":{"ParamAngleX":15},"long_edge":768}
+uv run --no-sync l2d render projects/my-character /absolute/pose.json
+uv run --no-sync l2d preview-video projects/my-character
+```
+
+`repair` 支持 create/show/list/update/run/evidence/record-review/apply/discard。修正复用网页的草稿、版本锁和像素/几何校验；本地图片被复制进草稿。`evidence` 准备带哈希的检查图片，Codex 看图后用 `record-review` 保存有来源的判断。CLI 应用要求当前视觉检查记录；过期或变化的证据不能应用，agent 检查也不会标记人工验收。接口和坐标说明见 [工具参考](skills/live2d-production/references/tools.md)。
+
+默认使用 **agent 模式**：Codex 负责规划、看图和候选比较，**生图、修图与补画优先使用 agent 自带的图像工具**，只有用户明确指定时才使用其他工具或服务；不预设具体的底层模型名称。实际结果通过 `--plan-file`、分层 PSD 或 repair add/replace 导入。**只有用户明确要求全本地运行时才使用本地 AI 模型**；工具缺失或出错时说明具体限制，不自动切换服务或回退到本地模型。
+
+`configs/local.toml` 中的 `[execution] mode = "agent"` 是共享默认；旧配置未写 mode 时也默认 agent。全本地任务应复制此文件到任务目录，设置 `mode = "local"`，并通过 `--config /absolute/full-local.toml` 传入；不要为一次任务修改共享默认。`inference = "container"/"native"` 只选择本地后端的运行方式，不启用本地模型。`doctor` 会显示当前模式。
+
+模式限制覆盖本地规划/VLM、Animagine、Qwen Image Edit、See-through、SAM2 和 LaMa。PSD 处理、像素校验、透明岛拆分、绑定、渲染和导出继续使用本地程序。当前自动 PNG 拆层只有 See-through 实现，尚无云端拆层适配器；agent 模式使用已有分层 PSD，或在可行时将所选图像工具产生的图层组装并检查后导入。无法完成时明确说明缺失能力，不能静默加载本地模型。
+
+Skill 分阶段检查和修复。缺层时保留素材、返回 `paused`，由明确步骤补齐。结构检查、视觉检查、官方运行时验证和用户接受保持分别记录；本次接口改造本身不证明成品质量已提升。
+
+精细制作扩展覆盖 [参考目标与任务拆解](skills/live2d-production/references/detailed-production.md)、[组件与原画保真](skills/live2d-production/references/components.md)、[参数与变形](skills/live2d-production/references/parameters.md)、[表情、动作与物理](skills/live2d-production/references/performance.md)。Skill 会按需求选择这些扩展，将制作目标映射到实际组件、控制和验收证据。
+
+已接通的制作工具：
+
+- 制作计划支持 `parameter_create`、`warp_create`、`object_edit`，能按顺序新建控制、层级和关键形；`rig-inspect` 读取完整对象及分页几何。
+- `materials-batch` 同时捕获多张原尺寸 PNG，检查位置、遮挡顺序、语义和绑定，整体预览与审查后一次应用；失败不改变项目 head。
+- `performance` 管理表情、动作和物理配置的不可变快照。新模型版本固定继承当前配置，普通 `export` 自动登记和打包；支持动作时间轴、表情叠加、循环与实际 MP4 预览。
+- `physics compose/put` 编写完整多节 physics3 链；`performance preview --physics` 运行连续 CPU 模拟；`verify-playback` 可将参数 trace 交给用户提供的官方 Core 逐帧检查。
+
+```sh
+uv run --no-sync l2d materials-batch schema
+uv run --no-sync l2d rig-inspect projects/my-character --object OBJECT_ID --kind warp --detail object
+uv run --no-sync l2d performance schema playback
+uv run --no-sync l2d physics schema authoring
+uv run --no-sync l2d performance preview projects/my-character /absolute/playback.json --physics
+uv run --no-sync l2d verify-playback /absolute/delivery/model /absolute/parameters.json --core /absolute/libLive2DCubismCore.so
+```
+
+完整参数与版本流程见 [工具能力表](skills/live2d-production/references/tools.md#authoring-capabilities)。动作目前支持参数曲线，尚未支持 Model/PartOpacity 曲线或事件音频。CPU 物理为独立求解器，不承诺官方 SDK 数值一致；Core 检查仅验证连续参数更新及有限几何，目标应用的视觉和交互效果仍需实测。
+
+接口回归与真实成品渲染记录见 [2026-10-15 制作 skill 验证](docs/runs/2026-10-15-production-skill.md)。
+扩展工具及联合播放验证见 [2026-10-15 制作工具扩展](docs/runs/2026-10-15-authoring-tools.md)。
+
 ## 网页界面
 
-本机环境和权重准备好后，在项目目录运行：
+本机环境准备好后，在项目目录运行；需要网页自主规划与推理的全本地任务另加 `--config /absolute/full-local.toml`：
 
 ```sh
 cd /home/kurage/Projects/live2d
@@ -49,9 +103,9 @@ uv run l2d plan projects/demo '测试角色' --plan-file configs/example-plan.js
 uv run l2d status projects/demo
 ```
 
-`plan` **没有 `--plan-file` 时会启动语言模型**。`run`、`resume`、`revise` 也可能占用 GPU，请确保显卡有足够空闲资源。导入代码、进入 Nix shell、`doctor`、`init`、`history`、`checkout` 和打包现有产物不会启动模型。
+`plan` 没有 `--plan-file` 时需要全本地模式，agent 模式会拒绝启动本地规划器。全本地模式中的 `run`、`resume`、`revise` 可能占用 GPU。导入代码、进入 Nix shell、`doctor`、`init`、`history`、`checkout` 和打包现有产物不会启动模型。
 
-## 准备环境
+## 准备全本地推理环境
 
 ```sh
 uv run l2d prepare-sources
@@ -69,30 +123,32 @@ uv run l2d download-models
 
 4B 规划器已通过 7 项真实中文场景检查，进程显存峰值约 4.84 GiB；新建规划约 3 秒，带完整工程上下文的修改约 7–8.5 秒，包含加载与退出。已修正素材 ID 混用和提示词格式问题，详见 [小模型评估记录](docs/runs/2026-09-12-small-planner.md)。
 
-## 使用（以下命令会运行模型）
+## 使用全本地模式
+
+以下示例只用于明确要求全本地运行的任务。先复制配置并设置 `[execution] mode = "local"`，再传入该任务配置。默认 agent 工作流见上面的 skill 部分。
 
 ```sh
 # 从自然语言创建计划；这里只运行规划模型
-uv run l2d plan projects/demo '银发蓝眼，白色外套，正面半身二次元角色'
+uv run l2d plan projects/demo '银发蓝眼，白色外套，正面半身二次元角色' --config /absolute/full-local.toml
 # 先生图并暂停，以便检查构图
-uv run l2d run projects/demo --until image
+uv run l2d run projects/demo --until image --config /absolute/full-local.toml
 # 查看原画，满意后继续；可用 --until materials 在绑定前检查拆层
-uv run l2d resume projects/demo
+uv run l2d resume projects/demo --config /absolute/full-local.toml
 
 # 也可以从已有素材开始，PNG 会拆图，PSD 会直接进入素材规范化
 uv run l2d init projects/imported
-uv run l2d plan projects/imported '保留角色，生成基础动作' --source /absolute/character.psd
-uv run l2d run projects/imported
+uv run l2d plan projects/imported '保留角色，生成基础动作' --source /absolute/character.psd --config /absolute/full-local.toml
+uv run l2d run projects/imported --config /absolute/full-local.toml
 
 # 创建修改分支；默认只规划，不执行图像修改
-uv run l2d revise projects/demo '把前发改成浅蓝色'
-uv run l2d run projects/demo
+uv run l2d revise projects/demo '把前发改成浅蓝色' --config /absolute/full-local.toml
+uv run l2d run projects/demo --config /absolute/full-local.toml
 # 或一次规划并执行
-uv run l2d revise projects/demo '减小头发摆动幅度' --execute
+uv run l2d revise projects/demo '减小头发摆动幅度' --execute --config /absolute/full-local.toml
 
 uv run l2d history projects/demo
 uv run l2d checkout projects/demo REVISION_ID
-uv run l2d resume projects/demo
+uv run l2d resume projects/demo --config /absolute/full-local.toml
 # 看过预览后接受；接受的版本不允许重新运行覆盖
 uv run l2d accept projects/demo REVISION_ID
 uv run l2d export projects/demo /absolute/delivery
@@ -107,7 +163,7 @@ uv run l2d export projects/demo /absolute/delivery
 - 改色保留 alpha 和尺寸，重绘用原 alpha 作为范围并保留原透明度；轮廓变化需要重新生成/重新绑定。新部件采用显式绿幕生成与去底，适合非绿色素材，绿色部件或不干净边缘需要人工校正。
 - 新增口型使用 SAM 2.1 Tiny 的框/点提示提取中央嘴部，再保持比例放入指定位置。未得到可信的独立口型时停止并保留原图、候选掩膜和分割报告，避免把下半张脸缩成嘴部贴片。其他部件先去绿底再缩放。
 - 修改素材会重新绑定，**目前不承诺保留手工精修的网格**。只重放部件、层序、绑定和父级几何前提仍匹配的修正，其余列入待重新检查。仅修改姿态绑定时复制父版本完整工作区，通过 MCP 编辑。
-- 缺少必要口眼图层时尝试一次有界的规划补画，失败保留日志和中间结果；没有无限重试。不会把“理论能做”的精确变形或审美验收描述成可靠自动能力。
+- 缺少必要口眼图层时保留素材并暂停，使用网页或 `l2d repair` 显式补齐；`run` 不启动隐藏的规划补画任务。Skill 根据检查图片安排有限次数的修复。
 - 白底 PNG 拆层会对照上游保存的对齐原图，过滤几乎完全落在人物轮廓外的幻觉部件，记录 `source-support.json` 并保留原始 PSD。此检查无法发现所有语义错误，非白底或已有 PSD 不套用它。
 - 每个版本保存源输入副本、计划、依赖哈希和阶段产物；恢复时校验产物和指纹。已接受版本保持不变，失败修改不会改变它。
 - 单任务锁防止本管线同时运行多个大模型任务；同一工作区也有独占锁。外部 GPU 使用情况不由本工具管理。
@@ -139,14 +195,14 @@ projects/demo/
 
 ```sh
 # 生成拆分/绑定草稿 → 规则校验 → 视觉复查；在网页应用
-uv run l2d refine projects/my-character '把领结独立拆出来，根部固定，尾部小幅摆动'
+uv run l2d refine projects/my-character '把领结独立拆出来，根部固定，尾部小幅摆动' --config /absolute/full-local.toml
 # 只检查，不修改工程；可附上自然语言反馈
-uv run l2d review projects/my-character '检查转头和闭眼时有没有穿帮'
+uv run l2d review projects/my-character '检查转头和闭眼时有没有穿帮' --config /absolute/full-local.toml
 ```
 
 视觉模型使用 **Qwen3.5-9B Q4_K_M + F16 视觉投影**，与 4B 文字规划器分工，按需启动并释放。权重在主 Hugging Face 缓存中，项目的 `models/vision/` 为软链接。`l2d download-models` 会下载锁定版本；可用 `configs/local.toml` 的 `[vision]` 段配置本地 llama-server。单图定位采用 0–1000 归一化坐标，再由程序转换为源图层像素，避免混淆整幅角色和局部图层坐标。
 
-执行器复用 SAM2 提取源像素，先用 VLM 核验提取的是目标部件，再用已有 anime LaMa 补画下面被遮挡的区域。拆出的部件保留来源记录及原来的语义绑定；默认合成必须逐像素一致。新增绑定使用 PSD2Live 的独立子变形器、根部固定的摆动关键帧和两节点物理组，可给已有部件增加显示开关。支持衣服、头发、耳饰、头饰和其他配件；不支持任意跨坐标系换父级、通用多级物理链或自动换装设计。
+全本地拆分执行器复用 SAM2 提取源像素，先用 VLM 核验提取的是目标部件，再用已有 anime LaMa 补画下面被遮挡的区域。拆出的部件保留来源记录及原来的语义绑定；默认合成必须逐像素一致。新增绑定使用 PSD2Live 的独立子变形器、根部固定的摆动关键帧和两节点物理组，可给已有部件增加显示开关。支持衣服、头发、耳饰、头饰和其他配件。进一步的层级编辑、多节物理链使用上述制作工具；跨父坐标系编辑需检查外观，自动换装设计尚未实现。
 
 预览覆盖现有转头、俯仰、视线、眉毛、嘴、头发和新部件参数端点及部分组合。程序检查文件完整性、素材、中性合成及新增形变的三角形翻转/塌陷；VLM 检查图像中的语义和轮廓，不以置信度代替像素证据。修正建议局限于当前类型允许的操作；明确定位到单个部件后，可在有限候选中复查和比较，定位有歧义时由用户在图上选择部件，无法判断则保留证据。原版本保持不变。
 

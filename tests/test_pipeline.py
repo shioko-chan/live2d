@@ -259,6 +259,40 @@ def test_exclusive_task_lock(tmp_path):
                 pass
 
 
+def test_material_rebuild_filters_only_historical_rig_operations(tmp_path, monkeypatch):
+    """New controls are executed against the new rig, never treated as stale history."""
+    store = Store(tmp_path / "project")
+    store.init()
+    old = Operation(kind="rig", tool="parameter_create", arguments={"parameter_id": "Old"})
+    current = Operation(kind="rig", tool="parameter_create", arguments={"parameter_id": "New"})
+    parent = store.create(Plan(request="parent", prompt="parent", operations=[old]),
+                          source=source_psd(tmp_path / "source.psd"))
+    builds = []
+
+    async def build(config, psd, output, operations, parent_workspace=None):
+        builds.append(operations)
+        fixture_bundle(output / "bundle")
+        (output / "source.psd2live").write_text("fixture")
+        write_json(output / "rig-context.json", {})
+
+    monkeypatch.setattr("live2d_pipeline.rig.build", build)
+    pipeline = Pipeline(Config(), store)
+    pipeline.run(parent)
+    pid = assets.load_parts(store.revision_dir(parent.id) / "materials").parts[0].id
+    child = store.create(Plan(request="child", prompt="child", operations=[
+        Operation(kind="recolor", target=pid, color="#ffffff"), current,
+    ]))
+
+    def replay(store, base, material, operations):
+        assert base.id == parent.id and operations == [old]
+        return [], [{"reason": "changed geometry", "operation": old.model_dump()}]
+
+    monkeypatch.setattr("live2d_pipeline.repair_rig.safe_replay", replay)
+    pipeline.run(child)
+    assert builds == [[old], [current]]
+    assert read_json(store.revision_dir(child.id) / "rig-replay.json")["needs_review"]
+
+
 def test_comfy_execution_error_and_timeout(tmp_path):
     def handler(request):
         if request.url.path == "/object_info":
@@ -526,8 +560,8 @@ def test_download_manifest_has_visual_projector_and_pins():
     assert all(len(value["revision"]) == 40 for value in lockfile.values())
 
 
-def test_container_command_is_explicit_and_has_scoped_name(tmp_path):
-    config = Config()
+def test_container_command_is_explicit_and_has_scoped_name(tmp_path, local_config):
+    config = local_config
     command = config.inference_command("comfy", ["main.py"], [tmp_path])
     assert command[:2] == ["docker", "run"]
     assert command[command.index("--name") + 1].startswith("l2d-")
@@ -552,7 +586,7 @@ def test_ambiguous_plan_never_executes(tmp_path, monkeypatch):
     assert store.get().status == "planned"
 
 
-def test_decomposition_selects_color_psd_not_depth(tmp_path, monkeypatch):
+def test_decomposition_selects_color_psd_not_depth(tmp_path, monkeypatch, local_config):
     from live2d_pipeline import decompose
 
     output = tmp_path / "decomposed"
@@ -563,7 +597,7 @@ def test_decomposition_selects_color_psd_not_depth(tmp_path, monkeypatch):
         (output / "portrait_depth.psd").write_bytes(b"depth fixture")
 
     monkeypatch.setattr(decompose, "run", fake_inference)
-    result = decompose.decompose(Config(), original, output, tmp_path / "job.log")
+    result = decompose.decompose(local_config, original, output, tmp_path / "job.log")
     assert result == output / "portrait.psd"
 
 
@@ -674,7 +708,7 @@ def test_generated_face_tracks_closed_mouth_and_stacking(tmp_path):
     assert any(name.startswith("irides") and name.endswith("-l") for name in names)
 
 
-def test_pause_after_image_does_not_decompose(tmp_path, monkeypatch):
+def test_pause_after_image_does_not_decompose(tmp_path, monkeypatch, local_config):
     from live2d_pipeline import comfy, decompose
 
     def generated(config, prompt, negative, output, *args, **kwargs):
@@ -685,7 +719,7 @@ def test_pause_after_image_does_not_decompose(tmp_path, monkeypatch):
     store = Store(tmp_path / "p")
     store.init()
     revision = store.create(Plan(request="test", prompt="test"))
-    pipeline = Pipeline(Config(), store)
+    pipeline = Pipeline(local_config, store)
     pipeline.run(revision, until="image")
     assert store.get().status == "paused"
     assert store.get().stages["image"].state == "complete"

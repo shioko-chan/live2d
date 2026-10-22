@@ -15,6 +15,19 @@
 5. 分别做改色、固定轮廓重绘、新增饰品、删除饰品、绑定参数调整和整图重生成。检查未修改像素、父版本文件哈希、历史操作重放以及失败分支回退。
 6. 中断 ComfyUI/拆图任务并恢复，确认不重复已经验证的前置步骤，且仅本任务进程停止。
 7. 可选用自己获得的 Core 库运行 `l2d verify-runtime BUNDLE --core LIBRARY`，或将导出模型导入 VTube Studio。Core 检查只加载和计算默认姿态，不验证图像、遮罩和物理；最终仍需目标软件动态检查。
-8. 确认结果后 `checkout REVISION --accept` 并 `export`，不要将临时候选误当已验收模型。
+8. 用户确认结果后 `accept PROJECT REVISION` 并 `export`，不要将临时候选误当已验收模型。选择创作起点使用独立的 `checkout PROJECT REVISION`。
 
 `built` 仅表示管线完成并通过结构检查；`accepted` 表示用户看过并接受该版本。官方运行验收不自动改变项目状态或声称全部功能兼容。
+
+## 精细制作工具的增量验收
+
+默认使用 agent 模式，本节不需要本地 AI 推理：
+
+1. 用真实对象 ID 新建参数、Warp 层级和关键形；保存、重开，并通过 `rig-inspect` 核对控制点、层级、参数范围。不能以“参数存在”替代变形验证。
+2. 对多层编辑运行 `materials-batch preview/evidence`，查看整体、变更图层、位置和遮挡顺序后记录审查。过期输入、版本和证据必须拒绝；构建失败不得改变 head。
+3. 表情、动作和物理配置保存为 `performance` 快照。检查版本冲突、父子继承、重新导出和原始模型哈希；模型改参后旧库必须重新校验。
+4. 使用 `performance preview --physics` 播放实际动作、表情叠加和多节物理链，检查 MP4 与逐帧参数。CPU 求解器与官方 SDK 不作数值等价保证。
+5. 有官方 Core 时运行 `verify-playback BUNDLE TRACE --core LIB`：逐帧检查参数和全部 drawable 顶点。没有 Core 时记录未实测；mock ABI 测试只验证检查器控制流程。
+6. 素材重建后检查 `rig-replay.json`。失效操作及依赖必须一并剔除，且不能在后续重建中复活；新的修正操作需用当前几何重新制作。
+
+这些检查不替代目标应用中对物理、遮罩、表情切换、口型和视觉质量的验收。
