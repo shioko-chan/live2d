@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "core_geometry_check": "passed",
+  "frames": 325,
+  "vertices": 9918,
+  "vertex_checks": 3223350,
+  "drawables": 20,
+  "parameters": 23,
+  "core_version": 100663297,
+  "duration": 18.0,
+  "hashes": {
+    "core_sha256": "fa57d2357f541819e434e0fb9d0ba751c0f6e3f492ac4c56a5b256f5bac072c0",
+    "moc_sha256": "1aa5bca3daafe90001cd2b774ba96c5bf0e38e4fdced89155961700f5c9c7122",
+    "trace_sha256": "678322b9b4b99816874f2c74fd2a7052ecbbe8f124e9a077a79e8420972f1e3c"
+  },
+  "runtime_verified": false,
+  "physics_solver_parity": "not_evaluated",
+  "rendered_pixels": "not_evaluated",
+  "target_application": "not_evaluated",
+  "scope": "Core sequential parameter updates and finite drawable geometry only",
+  "frames_requested": 325,
+  "worker_exit_code": 0
+}

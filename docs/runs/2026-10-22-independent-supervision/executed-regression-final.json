@@ -1,0 +1,75 @@
+{
+  "created_at": "2026-10-22T14:39:10.629681+00:00",
+  "mode": "execute_clones",
+  "applies_revisions": false,
+  "metric_note": "source_saved_edit_versions = 源草稿版本号减一，包含程序保存；不是鼠标手势数或人工工作量。",
+  "acceptance_note": "程序检查与VLM判断分别记录，完成运行不等于视觉验收。",
+  "cases": [
+    {
+      "name": "两只耳饰拆分",
+      "project": "repair-materials-20260918",
+      "draft": "3ddea3de450144dcac01e33f837a1e74",
+      "step": "preview",
+      "fixture": "operation",
+      "note": "从已保存的网页笔刷标注重放拆分，检查默认姿态合成不变；不模拟用户鼠标动作。",
+      "status": "completed",
+      "human_acceptance": "pending",
+      "evidence_origin": "executed_clone",
+      "program_checks": [
+        {
+          "name": "掩膜包含可见像素",
+          "status": "pass",
+          "source": "rule"
+        },
+        {
+          "name": "默认姿态合成像素不变",
+          "source": "rule",
+          "status": "pass",
+          "reason": ""
+        }
+      ],
+      "vlm": [],
+      "candidate_count": 0,
+      "base_revision": "3a2cab6fd26e4360",
+      "source_draft_version": 3,
+      "source_saved_edit_versions": 2,
+      "input_checks": "pass",
+      "clone": "4c89152a2fae4539a65c795677c38519",
+      "candidates": [],
+      "comparison": null,
+      "recommended": null,
+      "search_total_elapsed": null,
+      "elapsed_seconds": 0.795
+    },
+    {
+      "name": "缺失开口口型补充",
+      "project": "repair-materials-20260918",
+      "draft": "dea55bd94494462e9c1f5e9c1a52217d",
+      "step": "preview",
+      "fixture": "defect",
+      "note": "基础版本缺少开口素材，重用保存的外部PNG及位置补充；本案例不声称自动生出口型。",
+      "status": "completed",
+      "human_acceptance": "pending",
+      "evidence_origin": "executed_clone",
+      "program_checks": [
+        {
+          "name": "掩膜包含可见像素",
+          "status": "pass",
+          "source": "rule"
+        }
+      ],
+      "vlm": [],
+      "candidate_count": 0,
+      "base_revision": "d68369ad96cc41cb",
+      "source_draft_version": 2,
+      "source_saved_edit_versions": 1,
+      "input_checks": "pass",
+      "clone": "5e1d4080cab64f6fb6b0abb6740c6f95",
+      "candidates": [],
+      "comparison": null,
+      "recommended": null,
+      "search_total_elapsed": null,
+      "elapsed_seconds": 0.656
+    }
+  ]
+}

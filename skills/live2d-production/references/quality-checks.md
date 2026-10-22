@@ -6,7 +6,7 @@ observations distinct. Log images and poses for each actionable defect.
 | Stage | Inspect | Continue when |
 | --- | --- | --- |
 | Artwork | Whole image and face/accessories; identity, anatomy, framing, line clarity | Requested features and important moving parts are identifiable |
-| Materials | Composite versus source; alpha edges; mask, fill and exposure probe | Required semantics exist, neighbours are excluded, exposed surfaces have no remnants/holes |
+| Materials | Source → generated layers → placed composite at matching scale; identity, aspect-ratio changes, alpha edges, mask/fill and exposure | Intended identity is retained; nonuniform resizing is reviewed; required semantics exist; exposed surfaces have no remnants/holes |
 | Early compatibility | Actual export through configured Core; target app when available | Core accepts the sampled geometry; remaining application checks are stated separately |
 | Neutral rig | Render versus material composite | Proportions, ordering and facial alignment are retained |
 | Face | Eye closed/half closed, mouth, gaze, head X/Y endpoints/intermediates | No persistent eye slit, detached lash, distorted mouth or skin gap |

@@ -1,0 +1,18 @@
+warning: Git tree '/home/kurage/Projects/live2d' is dirty
+error (ignored): SQLite database '/home/kurage/.cache/nix/eval-cache-v6/82b0cb50d1975ade84e4c427505f3ea450413463a635a87189b0b4dab0626107.sqlite' is busy
+Live2D shell ready. No model services started.
+........................................................................ [ 25%]
+........................................................................ [ 50%]
+........................................................................ [ 76%]
+...................................................................      [100%]
+=============================== warnings summary ===============================
+tests/test_repair.py:5
+  /home/kurage/Projects/live2d/tests/test_repair.py:5: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient
+
+.venv/lib/python3.12/site-packages/starlette/testclient.py:53
+  /home/kurage/Projects/live2d/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+283 passed, 2 warnings in 32.26s

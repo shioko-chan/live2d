@@ -1,0 +1,2 @@
+# Unified-diff context markers precede the upstream Kotlin tab indentation.
+integrations/psd2live/preview-visibility.patch whitespace=-space-before-tab

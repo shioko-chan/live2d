@@ -65,6 +65,22 @@ polish of a region whose basic closure or attachment is visibly broken.
 - Use consistent canvas coordinates and explicit part placement. A transparent
   PNG's tight crop is not the full-character coordinate system.
 
+## Preserve character identity across preparation
+
+At the materials gate compare source reference, generated isolated layers and
+placed composite at the same character/face scale. Check iris aspect ratio,
+pupil/highlight placement, upper/lower lash silhouette, bang parting and the key
+accessory/clothing silhouettes. Matching colors, semantic labels or layer counts
+do not establish identity fidelity. Record intentional redesigns separately from
+unintended drift, and retain both whole-character and face comparisons.
+
+Record native crop size, output size, horizontal/vertical scale and aspect-ratio
+change for each resampled part. Review nonuniform resizing explicitly before
+binding: it can turn an elongated iris into a round one even if the generated
+artwork was acceptable. Do not silently stretch a part to fit a planned box;
+resolve the artwork/placement mismatch and recheck identity. Passing material
+composition or runtime checks does not override a failed identity comparison.
+
 ## Use the agent image tool effectively
 
 Follow the tool's image-editing instructions. Supply the actual image/layer and a

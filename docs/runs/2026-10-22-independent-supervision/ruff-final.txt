@@ -1,0 +1,3 @@
+warning: Git tree '/home/kurage/Projects/live2d' is dirty
+Live2D shell ready. No model services started.
+All checks passed!

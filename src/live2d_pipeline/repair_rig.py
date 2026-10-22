@@ -22,6 +22,7 @@ def implementation_hash(config):
             "repair_rig": digest(Path(__file__)),
             "rig": digest(config.root / "src/live2d_pipeline/rig.py"),
             "canvas_mapping": digest(config.root / "integrations/psd2live/CanvasRepair.kt"),
+            "preview_visibility": digest(config.root / "integrations/psd2live/preview-visibility.patch"),
         }
     )
 

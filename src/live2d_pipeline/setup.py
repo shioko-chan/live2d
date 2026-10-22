@@ -7,6 +7,18 @@ from .process import run
 from .store import read_json, digest
 
 
+def prepare_rig_visibility(config):
+    """Apply the pinned CPU-preview visibility fix, or verify it is already applied."""
+    source = config.runtime / "sources/psd2live"
+    patch = config.root / "integrations/psd2live/preview-visibility.patch"
+    command = ["git", "-C", str(source), "apply"]
+    applied = subprocess.run(command + ["--reverse", "--check", str(patch)], capture_output=True)
+    if applied.returncode == 0:
+        return
+    subprocess.run(command + ["--check", str(patch)], check=True, capture_output=True)
+    subprocess.run(command + [str(patch)], check=True, capture_output=True)
+
+
 def prepare_sources(config):
     sources = config.runtime / "sources"
     sources.mkdir(parents=True, exist_ok=True)
@@ -37,6 +49,7 @@ def prepare_sources(config):
     (sources / "psd2live/gradlew").chmod(0o755)
     # Known, local adapter additions; never modify unrelated checkouts.
     rig = sources / "psd2live"
+    prepare_rig_visibility(config)
     shutil.copyfile(
         config.root / "integrations/psd2live/PipelineServer.kt",
         rig / "src/main/kotlin/io/github/psd2live/PipelineServer.kt",

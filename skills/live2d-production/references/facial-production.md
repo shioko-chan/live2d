@@ -46,6 +46,32 @@ when visible defects remain, or weak when intact but insufficiently expressive.
 Plan dedicated lid/iris controls or needed artwork; do not rename the outcome as
 a successful expression.
 
+## Author mixed contours without flattening the whole layer
+
+When one eye texture contains upper lashes and a lower contour, inspect whether
+its mesh has enough vertices to move the regions independently. Use
+`rig_inspect` points in parent-local and canvas space to establish units and
+feature ownership before authoring `keyform_set` position deltas. Derive separate
+upper/lower anchors from the actual artwork, retain each contour's thickness and
+make their trajectories meet at the intended closed seam. If the sampled topology
+cannot support this without visible folding or tearing, split/repaint the parts
+through the material workflow instead. Do not copy another character's anchor
+coordinates or scaling constants.
+
+Check opening 0/.25/.5/.75/1, both one-eye closures, head-turn combinations and
+requested smile controls. Keep full renders and close views. A thin closed line
+alone does not prove correct intermediate clipping or retained lash shape.
+
+For separate closed/open mouth artwork, inspect the binder-generated lip meshes
+as well as both source textures. A static closed-mouth layer fading across the
+entire opening range can leave a second mouth line over the opening. Author its
+exit and the generated outlines' entry together. Check a sample inside the fade
+interval (for example 0.05 when exit is at 0.1), its endpoints, intermediate
+openings and MouthForm min/default/max. Two contours at different positions remain
+a double mouth even when each is partially transparent: align their geometry
+before judging the crossfade. Sample more densely around any observed mismatch. Preserve intended open-mouth borders; do not hide all outlines merely
+to pass the closed pose.
+
 ## Judge recognizability and driver ownership
 
 Build a comparison sheet at matching scale and head pose for each requested

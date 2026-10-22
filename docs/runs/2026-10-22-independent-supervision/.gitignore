@@ -1,0 +1,13 @@
+# Keep transient execution logs locally; retain the useful final evidence below.
+*.txt
+*.stderr
+*.json
+!core-baseline.json
+!core-aligned.json
+!executed-regression-final.json
+!pytest-final.txt
+!ruff-final.txt
+!claude-question.txt
+!claude-response-retry.txt
+!claude-transition-question.txt
+!claude-transition-response.txt

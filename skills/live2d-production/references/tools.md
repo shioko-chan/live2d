@@ -201,3 +201,14 @@ New commands return JSON; validation/execution errors return `error` and `messag
 with nonzero exit. Argument syntax errors use Typer diagnostics. Long jobs share
 the task/project locks. Inspect status/draft before retrying interrupted apply: a
 revision may already have been created.
+
+## Verify visibility against rendered pixels
+
+The pinned CPU renderer uses the model's mesh and ancestor-part visibility after
+source preparation applies `integrations/psd2live/preview-visibility.patch`. An
+older prepared runtime may lack this fix; do not assume a successful edit was
+rendered. The repository's `scripts/check_rig_visibility.py PROJECT REVISION
+OBJECT_ID NEW_OUTPUT_DIRECTORY [--kind part]` performs a reversible hide/restore
+probe on a disposable workspace and requires changed pixels followed by exact
+restoration. This checks authoring-preview visibility, not animated opacity or
+target-application export behavior.
