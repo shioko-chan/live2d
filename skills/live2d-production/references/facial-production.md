@@ -31,6 +31,21 @@ A smile preset with unchanged eyes may suit a subtle brief; it must not be claim
 as an authored smile-eye control. A flat-looking turn needs landmark/contour and
 occlusion comparison; missing separate nose art alone does not prove pure translation.
 
+## Avoid mistaking a shared warp for eyelid control
+
+Inspect the actual lattice and child subtree before changing an eye parent warp.
+A deformation intended to lift the lower lid can flatten the upper lid, move or
+squash the iris, and alter the closed seam. Compare eye contours and iris shape at
+open, half-open and closed states; narrowing alone does not establish a smile.
+Reject a closure repair that removes the gap by crushing lashes into thin or broken
+lines. Compare retained lash shape as well as disappearance of the unwanted contour.
+For a repair, author against a saved baseline geometry when replacing a failed
+shape, rather than accumulating unexplained transforms. If the shared structure
+cannot produce the target expression within the repair budget, mark it failed
+when visible defects remain, or weak when intact but insufficiently expressive.
+Plan dedicated lid/iris controls or needed artwork; do not rename the outcome as
+a successful expression.
+
 ## Judge recognizability and driver ownership
 
 Build a comparison sheet at matching scale and head pose for each requested

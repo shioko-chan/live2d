@@ -62,3 +62,28 @@ For speaking/expressive characters use the regional checks in
 expressions even if they have no geometry defects. Run the early and final checks
 in [runtime-validation.md](runtime-validation.md); a pass from another model or
 an older export does not validate the delivery.
+
+## Visual failures override technical passes
+
+Inspect the baseline for absolute defects as well as comparing changes. Identical
+neutral pixels prove preservation, not baseline quality. Mark an observed broken
+closure, detached contour, exposed remnant or incoherent connection as `failed`;
+reserve `weak` for an intact result with insufficient expression or amplitude.
+For blinks, inspect the entire eye region: upper lashes, lower outlines, whites
+and iris must form a coherent closed eye. Checking only for iris leakage misses
+stationary lower contours below a closed lash seam. Record whether the defect is
+inherited, introduced or of unknown origin, with pose and image evidence.
+
+A technical pass cannot override a failed visual feature. Report both separately;
+when a repair budget ends with a visual failure, retain the candidate as an
+experiment and state that the feature remains failed. Do not infer the responsible
+layer from the composite alone; inspect source layers and deformation ownership
+before prescribing its repair.
+
+When changing this skill after a missed visual defect, retain the actual failing
+source layers and rendered poses as a project regression case. Record the expected
+rejection and observed cause separately from hypotheses. Re-evaluate that case
+with the revised procedure before claiming the review gap addressed; a skill
+format validator checks neither visual judgment nor production improvement. A
+subsequent production run is still needed to establish that the revised workflow
+prevents the defect.

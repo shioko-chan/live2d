@@ -6,6 +6,15 @@ behavior, and target-application behavior. Record them separately.
 
 ## Find the supplied library
 
+The project devShell packages Cubism Core from a fixed SDK version and source hash
+and exports `CUBISM_CORE_LIBRARY`; `.envrc` loads this flake. Enter the development
+shell before discovery. For GC retention outside direnv, use
+`nix develop --inputs-from . --profile .direnv/live2d-devshell`; the profile retains the shell closure
+while it exists. The pinned derivation can rebuild the package after collection.
+Do not use a manually discovered store path as the project dependency.
+`--inputs-from .` also resolves auxiliary nixpkgs lookups from the project lock
+instead of an unrelated global registry; use it for reproducible offline commands.
+
 1. Check the user's explicit path and `CUBISM_CORE_LIBRARY` in the execution
    environment, including the configured development shell. A variable missing in
    the current shell does not imply the library is absent from the machine.

@@ -43,7 +43,7 @@ This skill ships at `<repo>/skills/live2d-production`. Resolve the real path of
 this `SKILL.md`, including installation symlinks; its third parent is the repository.
 Run there. Read [tools.md](references/tools.md) before the first invocation.
 On this project's NixOS setup use
-`nix develop --offline --command uv run --no-sync l2d ...` with the prepared
+`nix develop --offline --inputs-from . --command uv run --no-sync l2d ...` with the prepared
 environment. `doctor` checks files without loading models. Missing local weights
 are not a blocker in agent mode. If required tool dependencies are missing, report
 which ones and follow the user's existing setup authorization.
@@ -86,8 +86,9 @@ current revision before changing an existing project's working head.
    SAM2/LaMa/Qwen steps only in fully local mode. A paused revision can have
    useful materials and missing semantics: repair these through drafts. Follow
    [quality-checks.md](references/quality-checks.md) for motion-driven separation,
-   alpha edges, source fidelity and hidden surfaces. For detailed layers or
-   fidelity loss, use [components.md](references/components.md).
+   alpha edges, source fidelity and hidden surfaces. For moving facial parts, verify actual layer content against binding behavior
+   using [components.md](references/components.md) before accepting materials.
+   Also use it for detailed layers or fidelity loss.
 4. **Exercise the rig.** Continue to `--until rig`. Run the early Core check on
    the actual export when the library is available; investigate rejection before
    further polish. Inspect saved poses and actual
@@ -113,7 +114,7 @@ current revision before changing an existing project's working head.
 7. **Deliver with evidence.** Generate the requested performance preview, inspect
    representative frames and export the chosen built revision with sources.
    Recheck the final exported model and its final trace, not only an earlier build.
-   Report each requested visual feature as verified, weak, unsupported or untested;
+   Report each requested visual feature as verified, failed, weak, unsupported or untested;
    distinguish a deliverable package from target-application acceptance.
    Summarize improvements, remaining defects and checks actually performed.
    Preserve a known-good revision when a candidate regresses.

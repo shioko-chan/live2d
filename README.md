@@ -12,6 +12,12 @@ The entry point is [`skills/live2d-production/SKILL.md`](skills/live2d-productio
 
 For example: **“Use $live2d-production to turn this illustration into a Live2D model with blinking, mouth opening, and small head turns. Inspect intermediate results, repair visible problems, and deliver the model.”**
 
+The devShell includes pinned Cubism Core (SDK 5-r.5, fixed source hash) and exports
+`CUBISM_CORE_LIBRARY`. `.envrc` loads the same flake. To retain a shell closure
+without direnv, use `nix develop --inputs-from . --profile .direnv/live2d-devshell`; do not copy a
+store hash into local configuration. First-time dependencies may require network
+access; subsequent cached runs can use `--offline`.
+
 Tool interfaces (run inside `nix develop`):
 
 ```sh

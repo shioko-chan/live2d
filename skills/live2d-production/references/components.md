@@ -23,6 +23,36 @@ new layer to its intended mesh/parent; naming a layer "lower eyelid" does not cr
 a specialized eyelid rig. Keep static decorative detail in its texture when no
 independent control or occlusion benefit is needed.
 
+## Check actual content against binding behavior
+
+Before binding a moving facial part, inspect its isolated pixels on light and dark
+backgrounds and its placed composite. In the production record map each visible
+feature to the source layer, resulting mesh/parent, intended control and expected
+behavior at rest and displacement. A filename or semantic tag is not proof of
+content: an `eyelash` image may include upper lashes, lower contours and lid folds;
+a `mouth_close` image may contain a shaded lower lip as well as the mouth seam.
+
+Include binder-generated meshes (such as automatic lip outlines) in this mapping;
+the source-layer list may not contain every visible contour.
+
+Read the existing binder's behavior and inspect the resulting rig before assuming
+these features move together correctly. Where one texture contains features that
+need different motion, either author a mesh that actually controls each region or
+prepare separate artwork and bindings. Prove the choice with open/half/closed
+poses before expression polish. If the binder cannot represent the separation,
+record the missing capability and repair it or report the affected feature blocked;
+renaming layers or adding a shared parent warp is not evidence of a solution.
+
+For unexpected lines, compare source, resized material, material composite and rig
+render to locate the first stage where the defect appears. Inspect alpha edges and
+pixel dimensions; preserve uncertainty about an unisolated cause. Fix the earliest
+faulty stage, then rebuild and repeat the affected poses. For hide/opacity probes,
+verify that a known visible feature actually disappears in the rendered pixels;
+a successful tool response alone does not establish a valid ablation. Preserve
+invalid/no-effect probes separately and do not infer contour ownership from them.
+Do not continue downstream
+polish of a region whose basic closure or attachment is visibly broken.
+
 ## Preserve source detail
 
 - Keep the original artwork and intended canvas dimensions. Inspect the face and

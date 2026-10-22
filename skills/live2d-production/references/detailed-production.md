@@ -86,3 +86,17 @@ larger image or denser mesh as evidence of improved motion.
 At delivery, report requested features implemented, visible defects corrected,
 remaining unsupported items, and checks not performed. Save artifact paths and
 revision IDs. Do not replace visual/runtime assessment with a single quality score.
+
+## Validate a change to this skill
+
+When asked to establish whether a workflow improvement works, execute a real
+production increment with a preserved baseline; documentation validation alone is
+insufficient. State the region and behaviors covered before editing. Keep source
+art, framing and input motion fixed where possible, and save both parameter traces
+and same-scale renders. Include a neutral regression case and an interacting
+control case (for example smile plus blink and speech), not just expression peaks.
+Use the normal revision/library/export path and the final Core check. Report
+improved, unchanged, regressed and untested outcomes separately. Feed observed
+failure causes back into the instructions. A successful regional revision is
+limited evidence; it does not validate from-scratch art/decomposition or establish
+general quality across characters. Expand the next run only to cover a stated gap.
